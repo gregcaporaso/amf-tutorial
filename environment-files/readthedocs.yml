@@ -9,7 +9,6 @@ dependencies:
   - entrezpy
   - python-dotenv
   - pyzotero
-  - numpy
   - xmltodict
   - pip:
     - q2doc@git+https://github.com/qiime2/q2doc@dev
