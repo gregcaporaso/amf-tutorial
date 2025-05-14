@@ -8,9 +8,7 @@ dependencies:
   - pip
   - entrezpy
   - python-dotenv
-  - pandas
   - pyzotero
-  - numpy
   - xmltodict
   - pip:
     - q2doc@git+https://github.com/qiime2/q2doc@dev
