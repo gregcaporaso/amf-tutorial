@@ -129,7 +129,7 @@ ref_seqs_maarjam, = use.action(
     use.UsageOutputNames(reads='ref_seqs_maarjam'))
 :::
 
-:::{describe-usage}
+<!-- :::{describe-usage}
 classifier_maarjam, = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='fit_classifier_naive_bayes'),
     use.UsageInputs(
@@ -137,9 +137,9 @@ classifier_maarjam, = use.action(
         reference_taxonomy=ref_taxonomy_maarjam,
         ),
     use.UsageOutputNames(classifier='classifier_maarjam'))
-:::
+::: -->
 
-:::{describe-usage}
+<!-- :::{describe-usage}
 taxonomy_maarjam, = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='classify_sklearn'),
     use.UsageInputs(
@@ -149,9 +149,9 @@ taxonomy_maarjam, = use.action(
         n_jobs=1,
         read_orientation='auto'),
     use.UsageOutputNames(classification='taxonomy_maarjam'))
-:::
+::: -->
 
-:::{describe-usage}
+<!-- :::{describe-usage}
 taxonomy_maarjam_md = use.view_as_metadata('taxonomy_maarjam_md', taxonomy_maarjam)
 use.action(
     use.UsageAction(plugin_id='metadata', action_id='tabulate'),
@@ -159,7 +159,7 @@ use.action(
         input=taxonomy_maarjam_md),
     use.UsageOutputNames(
         visualization='taxonomy_maarjam_md'))
-:::
+::: -->
 
 # day 8 
 :::{describe-usage}
@@ -430,7 +430,7 @@ faith_pd_group_significance = use.action(
     use.UsageInputs(
         alpha_diversity=core_metrics_outputs.faith_pd_vector,
         metadata=metadata),
-    use.UsageOutputNames(visualization='visualization_alphasignificance_faith'))
+    use.UsageOutputNames(visualization='faith_group'))
 :::
 
 :::{describe-usage}
