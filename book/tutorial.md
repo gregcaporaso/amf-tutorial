@@ -214,7 +214,7 @@ table_rice_unassigned_maarjAM, = use.action(
 :::
 
 :::{describe-usage}
-rep_seq_rice_unassigned_maarjAM = use.action(
+rep_seq_rice_unassigned_maarjAM, = use.action(
     use.UsageAction(plugin_id='feature_table', action_id='filter_seqs'),
     use.UsageInputs(
         data=representative_sequences,
