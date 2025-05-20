@@ -38,37 +38,34 @@ use.action(
     use.UsageOutputNames(visualization='demux'))
 :::
 
-# TODO import sample-data-paired-end-sequences-with-quality-2.qza
-
 :::{describe-usage}
-trimmed_sequences_0 = use.action(
-    use.UsageAction(plugin_id='cutadapt', action_id='trim-paired'),
+metadata = use.init_metadata_from_url('metadata',
+                                   'https://www.dropbox.com/scl/fi/zgcnuetdxochydkb0o3bw/metadata_file_rice.tsv?rlkey=fo5ywq8549fn5optv1u1nh4m4&st=hzljxvx3&dl=1')
+:::
+
+#denoising 
+# TODO import sample-data-paired-end-sequences-with-quality-2.qza
+# this is the data from the power point for cutadapt : analysis/seqs/combined.qza
+:::{describe-usage}
+trimmed_sequences = use.action(
+    use.UsageAction(plugin_id='cutadapt', action_id='trim_paired'),
     use.UsageInputs(
         demultiplexed_sequences='sample-data-paired-end-sequences-with-quality-2.qza',
         cores=1,
         front_f='AAGCTCGTAGTTGAATTTCG', # these are from the prov-replay
         front_r='CCCAACTATCCCTATTAATCAT',
         error_rate=0.2,
-        indels=True,
-        times=1,
-        overlap=3,
-        no_match_read_wildcards=True,
-        match_adapter_wildcards=True,
-        minimum_length=1,
-        no_discard_untrimmed=True,
-        quality_cutoff_5end=0,
-        quality_cutoff_3end=0,
-        quality_base=33),
-    use.UsageOutputNames(trimmed_sequences='trimmed-sequences.qza'))
+        ),
+    use.UsageOutputNames(trimmed_sequences='trimmed_sequences'))
 :::
 
 :::{describe-usage}
 visualization_5 = use.action(
     use.UsageAction(plugin_id='demux', action_id='summarize'),
     use.UsageInputs(
-        data='trimmed-sequences.qza',
+        data=trimmed_sequences,
         n=10000),
-    use.UsageOutputNames(visualization='visualization-5.qzv'))
+    use.UsageOutputNames(visualization='visualization_5'))
 :::
 
 # TODO cutadapt which adapters should be used?
@@ -83,30 +80,19 @@ qiime cutadapt trim-paired \
 # TODO metadata tabulate?
 
 :::{describe-usage}
-table, denoising_stats, representative-sequences.qza = use.action(
-    use.UsageAction(plugin_id='dada2', action_id='denoise-paired'),
+table, denoising_stats, representative_sequences = use.action(
+    use.UsageAction(plugin_id='dada2', action_id='denoise_paired'),
     use.UsageInputs(
-        demultiplexed_seqs='sample-data-paired-end-sequences-with-quality.qza',
-        trunc_len_f=220, #different from tutorial see below command
-        trunc_len_r=200,
-        trim_left_f=0,
-        trim_left_r=0,
-        max_ee_f=2.0,
-        max_ee_r=2.0,
-        trunc_q=2,
-        min_overlap=12,
-        pooling_method='independent',
-        chimera_method='consensus',
-        min_fold_parent_over_abundance=1.0,
-        no_allow_one_off=True,
-        n_threads=1,
-        n_reads_learn=1000000,
-        hashed_feature_ids=True,
-        retain_all_samples=True),
+        demultiplexed_seqs=demux,
+        trunc_len_f=240, #different from prov replay, changed to match pptx
+        trunc_len_r=220,
+        ),
     use.UsageOutputNames(
-        table='table.qza',
-        denoising_stats='denoising-stats.qza',
-        representative_sequences='representative-sequences.qza'))
+        table='table',
+        denoising_stats='denoising_stats',
+        representative_sequences='representative_sequences'
+        )
+)
 :::
 
 # TODO Denoising with dada2, should I remove all the default parameters above?
@@ -114,15 +100,31 @@ qiime dada2 denoise-paired \
     --i-demultiplexed-seqs demux.qza \
     --p-trunc-len-f 240 \ #different from provenance
     --p-trunc-len-r 220 \
-    --o-representative-sequences representative-sequences.qza \
+    --o-representative-sequences representative_sequences.qza \
     --o-table table.qza \
     --o-denoising-stats denoising-stats.qza
+
+:::{describe-usage}
+dada2_stats_viz = use.action(
+    use.UsageAction(plugin_id='metadata', action_id='tabulate'),
+    use.UsageInputs(
+        input=denoising_stats),
+    use.UsageOutputNames(visualization='stats-dada2'))
+:::
 
 qiime metadata tabulate \
   --m-input-file denoising-stats.qza \
   --o-visualization stats-dada2.qzv
 
 qiime tools view stats-dada2.qzv
+
+:::{describe-usage}
+rep_seqs_viz = use.action(
+    use.UsageAction(plugin_id='feature_table', action_id='tabulate_seqs'),
+    use.UsageInputs(
+        data=representative_sequences),
+    use.UsageOutputNames(visualization='rep-seqs'))
+:::
 
 qiime feature-table tabulate-seqs \
 --i-data representative-sequences.qza \
@@ -131,19 +133,43 @@ qiime feature-table tabulate-seqs \
 Saved Visualization to: rep-seqs.qzv
 Qiime tools view rep-seqs.qzv
 
+:::{describe-usage}
+table_summary = use.action(
+    use.UsageAction(plugin_id='feature_table', action_id='summarize'),
+    use.UsageInputs(
+        table=table),
+    use.UsageOutputNames(visualization='table'))
+:::
+
 qiime feature-table summarize \
 --i-table table.qza \
---o-visualization table.qzv 
+--o-visualization table.qzv
 
 Saved Visualization to: table.qzv
 
 qiime tools view table.qzv
 
 # TODO Reference databases and Taxonomic classification, feature table filtering and building the phylogenetic tree
+
+:::{describe-usage}
+def maarjam_refseq_factory():
+    from urllib import request
+    from qiime2 import Artifact
+    # Download the FASTA file
+    fp, _ = request.urlretrieve(
+        'https://www.dropbox.com/scl/fi/kedvuma4xdl3blf3mb8ig/maarjam_database_SSU_TYPE.qiime.fasta?rlkey=zoj00nmnz97igynnykj0hyqxj&st=xtj7ueg1&dl=1')
+    # Import as a QIIME 2 artifact
+    return Artifact.import_data(
+        'FeatureData[Sequence]', fp)
+
+otus_85 = use.init_artifact('otus_85', maarjam_refseq_factory)
+:::
+
+
 # TODO qiime tools import \
   --type 'FeatureData[Sequence]' \
   --input-path maarjam_database_SSU_TYPE.qiime.fasta \
-  --output-path 85_otus.qza
+  --output-path otus_85.qza
 # TODO qiime tools import \
   --type 'FeatureData[Taxonomy]' \
   --input-format HeaderlessTSVTaxonomyFormat \
@@ -151,22 +177,17 @@ qiime tools view table.qzv
   --output-path ref-taxonomy.qza
 
 :::{describe-usage}
-ref-seqs.qza = use.action(
-    use.UsageAction(plugin_id='feature-classifier', action_id='extract-reads'),
+ref_seqs, = use.action(
+    use.UsageAction(plugin_id='feature_classifier', action_id='extract_reads'),
     use.UsageInputs(
-        sequences='85_otus.qza',
+        sequences=otus_85,
         f_primer='AAGCTCGTAGTTGAATTTCG',
         r_primer='CCCAACTATCCCTATTAATCAT',
-        trim_right=0,
-        trunc_len=120, # mismatched from below
-        trim_left=0,
-        identity=0.8,
+        trunc_len=250, # mismatched from 120 in provenance replay
         min_length=100,
         max_length=400,
-        n_jobs=1,
-        batch_size='auto',
-        read_orientation='both'),
-    use.UsageOutputNames(extracted_reads='reads.qza'))
+        ),
+    use.UsageOutputNames(reads='ref_seqs'))
 :::
 
 qiime feature-classifier extract-reads \
@@ -177,35 +198,29 @@ qiime feature-classifier extract-reads \
   --p-min-length 100 \
   --p-max-length 400 \
   --o-reads ref-seqs.qza
-# TODO import ref-taxonomy.qza
 
 :::{describe-usage}
-classifier = use.action(
-    use.UsageAction(plugin_id='feature-classifier', action_id='fit-classifier-naive-bayes'),
+def maarjam_taxonomy_factory():
+    from urllib import request
+    from qiime2 import Artifact
+    # Download the taxonomy TSV file
+    fp, _ = request.urlretrieve(
+        'https://www.dropbox.com/scl/fi/qe2z05fh9pe45eytl6f96/maarjam_database_SSU_TYPE.qiime.txt?rlkey=4ma85ti0l94378ctwxf4iwj5n&st=a2oc7ppj&dl=1')
+    # Import as a QIIME 2 artifact
+    return Artifact.import_data(
+        'FeatureData[Taxonomy]', fp, view_type='HeaderlessTSVTaxonomyFormat')
+
+ref_taxonomy = use.init_artifact('ref_taxonomy', maarjam_taxonomy_factory)
+:::
+
+:::{describe-usage}
+classifier, = use.action(
+    use.UsageAction(plugin_id='feature_classifier', action_id='fit_classifier_naive_bayes'),
     use.UsageInputs(
-        reference_reads='ref-seqs.qza',
-        reference_taxonomy='ref-taxonomy.qza.qza',
-        classify__alpha=0.001,
-        classify__chunk_size=20000,
-        classify__class_prior='null',
-        no_classify__fit_prior=True,
-        no_feat_ext__alternate_sign=True,
-        feat_ext__analyzer='char_wb',
-        no_feat_ext__binary=True,
-        feat_ext__decode_error='strict',
-        feat_ext__encoding='utf-8',
-        feat_ext__input='content',
-        feat_ext__lowercase=True,
-        feat_ext__n_features=8192,
-        feat_ext__ngram_range='[7, 7]',
-        feat_ext__norm='l2',
-        feat_ext__preprocessor='null',
-        feat_ext__stop_words='null',
-        feat_ext__strip_accents='null',
-        feat_ext__token_pattern='(?u)\\b\\w\\w+\\b',
-        feat_ext__tokenizer='null',
-        no_verbose=True),
-    use.UsageOutputNames(classifier='classifier.qza'))
+        reference_reads=ref_seqs,
+        reference_taxonomy=ref_taxonomy,
+        ),
+    use.UsageOutputNames(classifier='classifier'))
 :::
 
 qiime feature-classifier fit-classifier-naive-bayes \
@@ -214,15 +229,15 @@ qiime feature-classifier fit-classifier-naive-bayes \
   --o-classifier classifier.qza
 
 :::{describe-usage}
-taxonomy = use.action(
-    use.UsageAction(plugin_id='feature-classifier', action_id='classify-sklearn'),
+taxonomy, = use.action(
+    use.UsageAction(plugin_id='feature_classifier', action_id='classify_sklearn'),
     use.UsageInputs(
-        reads='representative-sequences.qza',
-        classifier='classifier.qza',
+        reads=representative_sequences,
+        classifier=classifier,
         confidence=0.7,
         n_jobs=1,
         read_orientation='auto'),
-    use.UsageOutputNames(classification='taxonomy.qza'))
+    use.UsageOutputNames(classification='taxonomy'))
 :::
 
 qiime feature-classifier classify-sklearn \
@@ -232,11 +247,11 @@ qiime feature-classifier classify-sklearn \
 
 :::{describe-usage}
 taxonomy_viz = use.action(
-    use.UsageAction(plugin_id='qiime2', action_id='metadata tabulate'),
+    use.UsageAction(plugin_id='metadata', action_id='tabulate'),
     use.UsageInputs(
-        m_input_file='taxonomy.qza'),
+        input=taxonomy),
     use.UsageOutputNames(
-        visualization='taxonomy.qzv'))
+        visualization='taxonomy'))
 :::
 
 qiime metadata tabulate \
@@ -246,19 +261,16 @@ qiime metadata tabulate \
 qiime tools view taxonomy.qza
 
 :::{describe-usage}
-rooted_tree, unrooted-tree, aligned-rep-seqs.qza, masked-aligned-rep-seqs.qza = use.action(
-    use.UsageAction(plugin_id='phylogeny', action_id='align-to-tree-mafft-fasttree'),
+rooted_tree, unrooted_tree, aligned_rep_seqs, masked_aligned_rep_seqs = use.action(
+    use.UsageAction(plugin_id='phylogeny', action_id='align_to_tree_mafft_fasttree'),
     use.UsageInputs(
-        sequences='representative-sequences.qza',
-        n_threads=1,
-        mask_max_gap_frequency=1.0,
-        mask_min_conservation=0.4,
-        no_parttree=True),
+        sequences=representative_sequences,
+        ),
     use.UsageOutputNames(
-        rooted_tree='rooted-tree.qza',
-        tree='unrooted-tree.qza',
-        alignment='aligned-rep-seqs.qza',
-        masked_alignment='masked-aligned-rep-seqs.qza'))
+        rooted_tree='rooted_tree',
+        tree='unrooted_tree',
+        alignment='aligned_rep_seqs',
+        masked_alignment='masked_aligned_rep_seqs'))
 :::
 
 qiime phylogeny align-to-tree-mafft-fasttree \
@@ -270,52 +282,44 @@ qiime phylogeny align-to-tree-mafft-fasttree \
 
 # day 8 
 :::{describe-usage}
-rice_taxonomy_maarjAM_0.99, rice_search-results_maarjAM_0.99 = use.action(
-    use.UsageAction(plugin_id='feature-classifier', action_id='classify-consensus-vsearch'),
+rice_taxonomy_maarjAM, rice_search_results_maarjAM = use.action(
+    use.UsageAction(plugin_id='feature_classifier', action_id='classify_consensus_vsearch'),
     use.UsageInputs(
-        query='rep-seq_rice.qza',
-        reference_reads='85_otus._maarjaas.qza',
-        reference_taxonomy='ref-taxonomy_maarjaas.qza',
+        query=representative_sequences,
+        reference_reads=otus_85,
+        reference_taxonomy=ref_taxonomy,
         maxaccepts=1,
         perc_identity=0.99,
-        query_cov=0.8,
         strand='both',
-        no_search_exact=True,
         top_hits_only=True,
-        maxhits='all',
-        maxrejects='all',
-        output_no_hits=True,
-        weak_id=0.0,
-        threads=1,
-        min_consensus=0.51,
         unassignable_label='Unassigned'),
     use.UsageOutputNames(
-        classification='rice_taxonomy_maarjAM_0.99.qza',
-        search_results='rice_search-results_maarjAM_0.99.qza'))
+        classification='rice_taxonomy_maarjAM',
+        search_results='rice_search_results_maarjAM'))
 :::
 
 qiime feature-classifier classify-consensus-vsearch \
   --i-query rep-seq_rice.qza  \
-  --i-reference-reads 85_otus._maarjaas.qza \
+  --i-reference-reads otus_85._maarjaas.qza \
   --i-reference-taxonomy ref-taxonomy_maarjaas.qza \
   --p-perc-identity 0.99 \
   --p-top-hits-only \
   --p-maxaccepts 1 \
   --p-strand 'both' \
   --p-unassignable-label 'Unassigned' \
-  --o-classification rice_taxonomy_maarjAM_0.99.qza \
+  --o-classification rice_taxonomy_maarjAM_aligned_rep_seqs.qza \
   --o-search-results rice_search-results_maarjAM_0.99.qza
 
-::{describe-usage}
-table-rice-unassigned_maarjAM = use.action(
-    use.UsageAction(plugin_id='taxa', action_id='filter-table'),
+:::{describe-usage}
+table_rice_unassigned_maarjAM = use.action(
+    use.UsageAction(plugin_id='taxa', action_id='filter_table'),
     use.UsageInputs(
-        table='table_rice.qza',
-        taxonomy='rice_taxonomy_maarjaAM_0.99.qza',
+        table=table, #table_rice?
+        taxonomy=rice_taxonomy_maarjAM,
         include='Unassigned',
         query_delimiter=',',
         mode='contains'),
-    use.UsageOutputNames(filtered_table='table-rice-unassigned_maarjAM.qza '))
+    use.UsageOutputNames(filtered_table='table_rice_unassigned_maarjAM'))
 :::
 
 qiime taxa filter-table \
@@ -324,16 +328,16 @@ qiime taxa filter-table \
   --p-include "Unassigned" \
   --o-filtered-table table-rice-unassigned_maarjAM.qza
 
-::{describe-usage}
+:::{describe-usage}
 filtered_unassigned_table = use.action(
-    use.UsageAction(plugin_id='taxa', action_id='filter-table'),
+    use.UsageAction(plugin_id='taxa', action_id='filter_table'),
     use.UsageInputs(
-        table='table_rice.qza',
-        taxonomy='rice_taxonomy_maarjaAM_0.99.qza',
+        table=table, #table_rice?
+        taxonomy=rice_taxonomy_maarjAM,
         include='c__Glomeromycetes',
         query_delimiter=',',
         mode='contains'),
-    use.UsageOutputNames(filtered_table='maarjAM_Glomeromycetes-seqs.qza'))
+    use.UsageOutputNames(filtered_table='maarjAM_Glomeromycetes_seqs'))
 :::
 
 qiime taxa filter-table \
@@ -343,12 +347,12 @@ qiime taxa filter-table \
   --o-filtered-table maarjAM_Glomeromycetes-seqs.qza
 
 :::{describe-usage}
-rep-seq-rice-unassigned_maarjAM = use.action(
-    use.UsageAction(plugin_id='feature-table', action_id='filter-seqs'),
+rep_seq_rice_unassigned_maarjAM = use.action(
+    use.UsageAction(plugin_id='feature_table', action_id='filter_seqs'),
     use.UsageInputs(
-        data='rep-seq_rice.qza',
-        table='table-rice-unassigned_maarjAM.qza'),
-    use.UsageOutputNames(filtered_data='rep-seq-rice-unassigned_maarjAM.qza'))
+        data=representative_sequences,
+        table=table_rice_unassigned_maarjAM),
+    use.UsageOutputNames(filtered_data='rep_seq_rice_unassigned_maarjAM'))
 :::
 
 qiime feature-table filter-seqs \
@@ -356,21 +360,41 @@ qiime feature-table filter-seqs \
   --i-table table-rice-unassigned_maarjAM.qza \
   --o-filtered-data rep-seq-rice-unassigned_maarjAM.qza
 
+# silva
 :::{describe-usage}
-rice_taxonomy_assigned_silva_0.99, rice_search-results_assigned_silva_0.99 = use.action(
-    use.UsageAction(plugin_id='feature-classifier', action_id='classify-consensus-vsearch'),
+def silva_seqs_factory():
+    from urllib import request
+    from qiime2 import Artifact
+    url = 'https://data.qiime2.org/2024.2/common/silva-138-99-seqs.qza'
+    fp, _ = request.urlretrieve(url)
+    return Artifact.load(fp)
+
+def silva_tax_factory():
+    from urllib import request
+    from qiime2 import Artifact
+    url = 'https://data.qiime2.org/2024.2/common/silva-138-99-tax.qza'
+    fp, _ = request.urlretrieve(url)
+    return Artifact.load(fp)
+
+silva_138_99_seqs = use.init_artifact('silva_138_99_seqs', silva_seqs_factory)
+silva_138_99_tax = use.init_artifact('silva138_99_tax', silva_tax_factory)
+:::
+
+:::{describe-usage}
+rice_taxonomy_assigned_silva, rice_search_results_assigned_silva = use.action(
+    use.UsageAction(plugin_id='feature_classifier', action_id='classify_consensus_vsearch'),
     use.UsageInputs(
-        query='rep-seq-rice-unassigned_maarjAM.qza',
-        reference_reads='silva-138-99-seqs.qza',
-        reference_taxonomy='silva-138-99-tax.qza',
+        query=rep_seq_rice_unassigned_maarjAM,
+        reference_reads=silva_138_99_seqs,
+        reference_taxonomy=silva_138_99_tax,
         perc_identity=0.99,
         top_hits_only=True,
         maxaccepts=1,
         strand='both',
         unassignable_label='Unassigned'),
     use.UsageOutputNames(
-        classification='rice_taxonomy_assigned_silva_0.99.qza',
-        search_results='rice_search-results_assigned_silva_0.99.qza'))
+        classification='rice_taxonomy_assigned_silva',
+        search_results='rice_search_results_assigned_silva'))
 :::
 
 qiime feature-classifier classify-consensus-vsearch \
@@ -387,10 +411,10 @@ qiime feature-classifier classify-consensus-vsearch \
 
 :::{describe-usage}
 merged_taxonomy = use.action(
-    use.UsageAction(plugin_id='feature-table', action_id='merge-taxa'),
+    use.UsageAction(plugin_id='feature_table', action_id='merge_taxa'),
     use.UsageInputs(
-        data=['rice_taxonomy_maarjAM_0.99.qza', 'rice_taxonomy_assigned_silva_0.99.qza']),
-    use.UsageOutputNames(merged_data='merged-taxonomy.qza'))
+        data=[rice_taxonomy_maarjAM, rice_taxonomy_assigned_silva]),
+    use.UsageOutputNames(merged_data='merged_taxonomy'))
 :::
 
 qiime feature-table merge-taxa
@@ -398,13 +422,13 @@ qiime feature-table merge-taxa
 --o-merged-data merged-taxonomy.qza
 
 :::{describe-usage}
-axa-bar-plots = use.action(
+taxa_bar_plots = use.action(
     use.UsageAction(plugin_id='taxa', action_id='barplot'),
     use.UsageInputs(
-        table='table.qza',
-        taxonomy='merged-taxonomy.qza',
-        metadata_file='metadata_file_rice.tsv'),
-    use.UsageOutputNames(visualization='taxa-bar-plots.qzv'))
+        table=table,
+        taxonomy=merged_taxonomy,
+        metadata=metadata),
+    use.UsageOutputNames(visualization='taxa_bar_plots'))
 :::
 
 qiime taxa barplot \
@@ -418,13 +442,13 @@ qiime taxa barplot \
 #Traditional rice
 
 :::{describe-usage}
-traditional_rice_table = use.action(
-    use.UsageAction(plugin_id='feature-table', action_id='filter-samples'),
+traditional_rice_table, = use.action(
+    use.UsageAction(plugin_id='feature_table', action_id='filter_samples'),
     use.UsageInputs(
-        table='table.qza',
-        metadata_file='metadata_file_rice.tsv',
+        table=table,
+        metadata=metadata,
         where="[env_broad_scale]='Traditional rice root'"),
-    use.UsageOutputNames(filtered_table='traditional_rice-table.qza'))
+    use.UsageOutputNames(filtered_table='traditional_rice_table'))
 :::
 
 qiime feature-table filter-samples \
@@ -436,10 +460,10 @@ qiime feature-table filter-samples \
 
 :::{describe-usage}
 traditional_rice_table_viz = use.action(
-    use.UsageAction(plugin_id='feature-table', action_id='summarize'),
+    use.UsageAction(plugin_id='feature_table', action_id='summarize'),
     use.UsageInputs(
-        table='traditional_rice-table.qza'),
-    use.UsageOutputNames(visualization='traditional_rice-table.qzv'))
+        table=traditional_rice_table),
+    use.UsageOutputNames(visualization='traditional_rice_table'))
 :::
 
 qiime feature-table summarize \
@@ -451,27 +475,27 @@ qiime feature-table summarize \
 #modern rice
 
 :::{describe-usage}
-filtered_table_1 = use.action(
-    use.UsageAction(plugin_id='feature-table', action_id='filter-samples'),
+modern_rice_table, = use.action(
+    use.UsageAction(plugin_id='feature_table', action_id='filter_samples'),
     use.UsageInputs(
-        table='table.qza',
-        metadata_file='metadata_file_rice.tsv',
-        where="[env_broad_scale]='Modern rice root'",
-    use.UsageOutputNames(filtered_table='Modern_rice-table.qza'))
+        table=table,
+        metadata=metadata,
+        where="[env_broad_scale]='Modern rice root'"),
+    use.UsageOutputNames(filtered_table='modern_rice_table'))
 :::
 
 qiime feature-table filter-samples \
   --i-table table.qza \
   --m-metadata-file metadata_file_rice.tsv \
   --p-where "[env_broad_scale]='Modern rice root'" \
-  --o-filtered-table Modern_rice-table.qza
+  --o-filtered-table modern_rice-table.qza
 
 :::{describe-usage}
 modern_rice_table_viz = use.action(
-    use.UsageAction(plugin_id='feature-table', action_id='summarize'),
+    use.UsageAction(plugin_id='feature_table', action_id='summarize'),
     use.UsageInputs(
-        table='Modern_rice-table.qza'),
-    use.UsageOutputNames(visualization='Modern_rice-table.qzv.qzv'))
+        table=modern_rice_table),
+    use.UsageOutputNames(visualization='modern_rice_table'))
 :::
 
 qiime feature-table summarize \
@@ -487,10 +511,10 @@ ASV relative abundance bar chart
 taxa_bar_plot = use.action(
     use.UsageAction(plugin_id='taxa', action_id='barplot'),
     use.UsageInputs(
-        table='table.qza',
-        taxonomy='taxonomy.qza',
-        metadata_file='metadata_file_rice.tsv'),
-    use.UsageOutputNames(visualization='taxa-bar-plots.qzv'))
+        table=table,
+        taxonomy=taxonomy,
+        metadata=metadata),
+    use.UsageOutputNames(visualization='taxa_bar_plots'))
 :::
 
 qiime taxa barplot \
@@ -507,12 +531,12 @@ Differential abundance (ANCOM-BC)
 
 :::{describe-usage}
 glomeromycetes_table = use.action(
-    use.UsageAction(plugin_id='taxa', action_id='filter-table'),
+    use.UsageAction(plugin_id='taxa', action_id='filter_table'),
     use.UsageInputs(
-        table='table.qza',
-        taxonomy='merged-taxonomy.qza',
+        table=table,
+        taxonomy=merged_taxonomy,
         include='p__Mucoromycota'),
-    use.UsageOutputNames(filtered_table='Glomeromycetes.qza'))
+    use.UsageOutputNames(filtered_table='Glomeromycetes'))
 :::
 
 qiime taxa filter-table \
@@ -527,10 +551,10 @@ qiime taxa filter-table \
 collapsed_table_lvl6 = use.action(
     use.UsageAction(plugin_id='taxa', action_id='collapse'),
     use.UsageInputs(
-        table='Glomeromycetes.qza',
-        taxonomy='merged-taxonomy.qza',
+        table=Glomeromycetes,
+        taxonomy=merged_taxonomy,
         level=6),
-    use.UsageOutputNames(collapsed_table='collapsed-table-level-6.qza'))
+    use.UsageOutputNames(collapsed_table='collapsed_table_level_6'))
 :::
 
 qiime taxa collapse \
@@ -544,10 +568,10 @@ qiime taxa collapse \
 l6_ancombc_diffs = use.action(
     use.UsageAction(plugin_id='composition', action_id='ancombc'),
     use.UsageInputs(
-        table='collapsed-table-level-6.qza',
-        metadata_file='metadata_file_rice.tsv',
+        table=collapsed_table_level_6,
+        metadata=metadata,
         formula='env_broad_scale'),
-    use.UsageOutputNames(differentials='l6-ancombc-differentials.qza'))
+    use.UsageOutputNames(differentials='l6_ancombc_differentials'))
 :::
 
 qiime composition ancombc \
@@ -560,10 +584,10 @@ qiime composition ancombc \
 l6_da_barplot = use.action(
     use.UsageAction(plugin_id='composition', action_id='da-barplot'),
     use.UsageInputs(
-        data='l6-ancombc-differentials.qza',
+        data=l6_ancombc_differentials,
         significance_threshold=0.01,
         level_delimiter=';'),
-    use.UsageOutputNames(visualization='l6-da-barplot.qzv'))
+    use.UsageOutputNames(visualization='l6_da_barplot'))
 :::
 
 qiime composition da-barplot \
@@ -576,16 +600,14 @@ qiime composition da-barplot \
 
 :::{describe-usage}
 alpha_rarefaction_plot = use.action(
-    use.UsageAction(plugin_id='diversity', action_id='alpha-rarefaction'),
+    use.UsageAction(plugin_id='diversity', action_id='alpha_rarefaction'),
     use.UsageInputs(
-        table='table.qza',
-        phylogeny='rooted-tree.qza',
+        table=table,
+        phylogeny=rooted_tree,
         max_depth=13299,
-        metadata_file='metadata_file_rice.tsv',
-        min_depth=1,
-        steps=10,
-        iterations=10),
-    use.UsageOutputNames(visualization='alpha-rarefaction.qzv'))
+        metadata=metadata,
+        ),
+    use.UsageOutputNames(visualization='alpha_rarefaction'))
 :::
 
 qiime diversity alpha-rarefaction \
@@ -597,33 +619,31 @@ qiime diversity alpha-rarefaction \
 
 :::{describe-usage}
 core_metrics_outputs = use.action(
-    use.UsageAction(plugin_id='diversity', action_id='core-metrics-phylogenetic'),
+    use.UsageAction(plugin_id='diversity', action_id='core_metrics_phylogenetic'),
     use.UsageInputs(
-        table='table.qza',
-        phylogeny='rooted-tree.qza',
+        table=table,
+        phylogeny=rooted_tree,
         sampling_depth=1602,
-        metadata_file='metadata_file_rice.tsv',
-        no_with_replacement=True,
-        n_jobs_or_threads=1,
-        no_ignore_missing_samples=True),
+        metadata=metadata,
+        ),
     use.UsageOutputNames(
-        evenness_vector='evenness-vector.qza',
-        faith_pd_vector='faith-pd-vector.qza',
-        unweighted_unifrac_distance_matrix='unweighted-unifrac-distance-matrix.qza',
-        bray_curtis_pcoa_results='bray-curtis-pcoa-results.qza',
-        shannon_vector='shannon-vector.qza',
-        rarefied_table='rarefied-table.qza',
-        weighted_unifrac_distance_matrix='weighted-unifrac-distance-matrix.qza',
-        jaccard_pcoa_results='jaccard-pcoa-results.qza',
-        unweighted_unifrac_emperor='unweighted-unifrac-emperor.qzv',
-        weighted_unifrac_pcoa_results='weighted-unifrac-pcoa-results.qza',
-        observed_features_vector='observed-features-vector.qza',
-        jaccard_distance_matrix='jaccard-distance-matrix.qza',
-        jaccard_emperor='jaccard-emperor.qzv',
-        bray_curtis_emperor='bray-curtis-emperor.qzv',
-        weighted_unifrac_emperor='weighted-unifrac-emperor.qzv',
-        bray_curtis_distance_matrix='bray-curtis-distance-matrix.qza',
-        unweighted_unifrac_pcoa_results='unweighted-unifrac-pcoa-results.qza'))
+        evenness_vector='evenness_vector',
+        faith_pd_vector='faith_pd_vector',
+        unweighted_unifrac_distance_matrix='unweighted_unifrac_distance_matrix',
+        bray_curtis_pcoa_results='bray-curtis-pcoa-results',
+        shannon_vector='shannon_vector',
+        rarefied_table='rarefied-table',
+        weighted_unifrac_distance_matrix='weighted-unifrac-distance-matrix',
+        jaccard_pcoa_results='jaccard-pcoa-results',
+        unweighted_unifrac_emperor='unweighted-unifrac-emperor',
+        weighted_unifrac_pcoa_results='weighted-unifrac-pcoa-results',
+        observed_features_vector='observed-features-vector',
+        jaccard_distance_matrix='jaccard-distance-matrix',
+        jaccard_emperor='jaccard-emperor',
+        bray_curtis_emperor='bray-curtis-emperor',
+        weighted_unifrac_emperor='weighted-unifrac-emperor',
+        bray_curtis_distance_matrix='bray-curtis-distance-matrix',
+        unweighted_unifrac_pcoa_results='unweighted-unifrac-pcoa-results'))
 :::
 
 qiime diversity core-metrics-phylogenetic \
@@ -635,25 +655,25 @@ qiime diversity core-metrics-phylogenetic \
 
 :::{describe-usage}
 shannon_group_significance = use.action(
-    use.UsageAction(plugin_id='diversity', action_id='alpha-group-significance'),
+    use.UsageAction(plugin_id='diversity', action_id='alpha_group_significance'),
     use.UsageInputs(
-        alpha_diversity='shannon_vector.qza',
-        metadata_file='metadata_file_rice.tsv'),
-    use.UsageOutputNames(visualization='shannon_group_significance.qzv'))
+        alpha_diversity=shannon_vector,
+        metadata=metadata),
+    use.UsageOutputNames(visualization='shannon_group_significance'))
 :::
 
 qiime diversity alpha-group-significance \
   --i-alpha-diversity shannon_vector.qza \
   --m-metadata-file metadata_file_rice.tsv \
-  --o-visualization shannon_group_significance.qzv
+  --o-visualization shannon_group_significance
 
 :::{describe-usage}
 evenness_group_significance = use.action(
-    use.UsageAction(plugin_id='diversity', action_id='alpha-group-significance'),
+    use.UsageAction(plugin_id='diversity', action_id='alpha_group_significance'),
     use.UsageInputs(
-        alpha_diversity='evenness-vector.qza',
-        metadata_file='metadata_file_rice.tsv'),
-    use.UsageOutputNames(visualization='evenness-group-significance.qzv'))
+        alpha_diversity=evenness_vector,
+        metadata=metadata),
+    use.UsageOutputNames(visualization='evenness_group_significance'))
 :::
 
 qiime diversity alpha-group-significance \
@@ -663,11 +683,11 @@ qiime diversity alpha-group-significance \
 
 :::{describe-usage}
 faith_pd_group_significance = use.action(
-    use.UsageAction(plugin_id='diversity', action_id='alpha-group-significance'),
+    use.UsageAction(plugin_id='diversity', action_id='alpha_group_significance'),
     use.UsageInputs(
-        alpha_diversity='faith-pd-vector.qza',
-        metadata_file='metadata_file_rice.tsv'),
-    use.UsageOutputNames(visualization='visualization_alphasignificance_faith.qzv'))
+        alpha_diversity=faith_pd_vector,
+        metadata=metadata),
+    use.UsageOutputNames(visualization='visualization_alphasignificance_faith'))
 :::
 
 qiime diversity alpha-group-significance \
@@ -677,15 +697,15 @@ qiime diversity alpha-group-significance \
 
 :::{describe-usage}
 beta_group_significance_simple = use.action(
-    use.UsageAction(plugin_id='diversity', action_id='beta-group-significance'),
+    use.UsageAction(plugin_id='diversity', action_id='beta_group_significance'),
     use.UsageInputs(
-        distance_matrix='unweighted-unifrac-distance-matrix.qza',
-        metadata_file='metadata_file_rice.tsv',
+        distance_matrix=unweighted_unifrac_distance_matrix,
+        metadata=metadata,
         metadata_column='env_broad_scale',
         method='permanova',
         no_pairwise=True,
         permutations=999),
-    use.UsageOutputNames(visualization='unweighted-unifrac-subject-group-significance.qzv'))
+    use.UsageOutputNames(visualization='unweighted_unifrac_subject_group_significance'))
 :::
 
 qiime diversity beta-group-significance \
@@ -696,15 +716,15 @@ qiime diversity beta-group-significance \
 
 :::{describe-usage}
 beta_group_significance = use.action(
-    use.UsageAction(plugin_id='diversity', action_id='beta-group-significance'),
+    use.UsageAction(plugin_id='diversity', action_id='beta_group_significance'),
     use.UsageInputs(
-        distance_matrix='unweighted-unifrac-distance-matrix.qza',
-        metadata_file='metadata_file_rice.tsv',
+        distance_matrix=unweighted_unifrac_distance_matrix,
+        metadata=metadata,
         metadata_column='Sample_Name',
         method='permanova',
         pairwise=True,
         permutations=999),
-    use.UsageOutputNames(visualization='unweighted-unifrac-body-site-significance.qzv'))
+    use.UsageOutputNames(visualization='unweighted_unifrac_body_site_significance'))
 :::
 
 qiime diversity beta-group-significance \
