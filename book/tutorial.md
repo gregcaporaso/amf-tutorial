@@ -41,7 +41,7 @@ metadata = use.init_metadata_from_url('metadata',
                                    'https://www.dropbox.com/scl/fi/zgcnuetdxochydkb0o3bw/metadata_file_rice.tsv?rlkey=fo5ywq8549fn5optv1u1nh4m4&st=hzljxvx3&dl=1')
 :::
 
-#denoising 
+# Denoising 
 # Check for primers using cutadapt, ?
 :::{describe-usage}
 trimmed_sequences = use.action(
@@ -49,8 +49,8 @@ trimmed_sequences = use.action(
     use.UsageInputs(
         demultiplexed_sequences=demux,
         cores=1,
-        front_f='TCCTACGGGAGGCAGCAGT',
-        front_r='GAGTTTCCCGCAGGTTCAC',
+        front_f=['TCCTACGGGAGGCAGCAGT'],
+        front_r=['GAGTTTCCCGCAGGTTCAC'],
         error_rate=0.2,
         ),
     use.UsageOutputNames(trimmed_sequences='trimmed_sequences'))
