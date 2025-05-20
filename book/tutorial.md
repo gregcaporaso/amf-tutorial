@@ -129,6 +129,15 @@ ref_seqs_maarjam, = use.action(
     use.UsageOutputNames(reads='ref_seqs_maarjam'))
 :::
 
+:::{describe-usage}
+classifier_maarjam = use.init_artifact_from_url('classifier_maarjam,
+                                   'https://www.dropbox.com/scl/fi/08aeme2zspkrt3q5bjmtu/classifier-maarjam.qza?rlkey=acl2ch723nf13spq25sp48ro4&st=itnbg5bu&dl=1')
+:::
+
+:::{describe-usage}
+taxonomy_maarjam = use.init_artifact_from_url('taxonomy_maarjam,
+                                   'https://www.dropbox.com/scl/fi/my2oc0qt0t67u1kgwcrlt/taxonomy-maarjam.qza?rlkey=f3x38pyyhhb2aq7yrdsbabjw9&st=wz36byr7&dl=1')
+:::
 <!-- :::{describe-usage}
 classifier_maarjam, = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='fit_classifier_naive_bayes'),
