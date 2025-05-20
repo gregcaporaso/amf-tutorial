@@ -457,13 +457,13 @@ faith_pd_group_significance = use.action(
 
 :::{describe-usage}
 
-subject_col = use.get_metadata_column('env_broad_scale', metadata)
+env_broad_col = use.get_metadata_column('env_broad_scale', metadata)
 
 beta_group_significance_simple = use.action(
     use.UsageAction(plugin_id='diversity', action_id='beta_group_significance'),
     use.UsageInputs(
         distance_matrix=core_metrics_outputs.unweighted_unifrac_distance_matrix,
-        metadata=subject_col,
+        metadata=env_broad_col,
         method='permanova',
         no_pairwise=True,
         permutations=999),
@@ -471,12 +471,14 @@ beta_group_significance_simple = use.action(
 :::
 
 :::{describe-usage}
+
+sample_name_col = use.get_metadata_column('Sample_Name', metadata)
+
 beta_group_significance = use.action(
     use.UsageAction(plugin_id='diversity', action_id='beta_group_significance'),
     use.UsageInputs(
         distance_matrix=core_metrics_outputs.unweighted_unifrac_distance_matrix,
-        metadata=metadata,
-        metadata_column='Sample_Name',
+        metadata=sample_name_col,
         method='permanova',
         pairwise=True,
         permutations=999),
