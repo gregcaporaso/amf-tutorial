@@ -330,16 +330,6 @@ modern_rice_table_viz = use.action(
     use.UsageOutputNames(visualization='modern_rice_table'))
 :::
 
-:::{describe-usage}
-taxa_bar_plot = use.action(
-    use.UsageAction(plugin_id='taxa', action_id='barplot'),
-    use.UsageInputs(
-        table=table,
-        taxonomy=taxonomy,
-        metadata=metadata),
-    use.UsageOutputNames(visualization='taxa_bar_plots'))
-:::
-
 # Differential abundance (ANCOM-BC)
 
 :::{describe-usage}
@@ -349,14 +339,14 @@ glomeromycetes_table = use.action(
         table=table,
         taxonomy=merged_taxonomy,
         include='p__Mucoromycota'),
-    use.UsageOutputNames(filtered_table='Glomeromycetes'))
+    use.UsageOutputNames(filtered_table='glomeromycetes_table'))
 :::
 
 :::{describe-usage}
 collapsed_table_lvl6 = use.action(
     use.UsageAction(plugin_id='taxa', action_id='collapse'),
     use.UsageInputs(
-        table=Glomeromycetes,
+        table=glomeromycetes_table,
         taxonomy=merged_taxonomy,
         level=6),
     use.UsageOutputNames(collapsed_table='collapsed_table_level_6'))
@@ -466,12 +456,14 @@ faith_pd_group_significance = use.action(
 :::
 
 :::{describe-usage}
+
+subject_col = use.get_metadata_column('env_broad_scale', metadata)
+
 beta_group_significance_simple = use.action(
     use.UsageAction(plugin_id='diversity', action_id='beta_group_significance'),
     use.UsageInputs(
         distance_matrix=core_metrics_outputs.unweighted_unifrac_distance_matrix,
-        metadata=metadata,
-        metadata_column='env_broad_scale',
+        metadata=subject_col,
         method='permanova',
         no_pairwise=True,
         permutations=999),
