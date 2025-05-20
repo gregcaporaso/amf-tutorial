@@ -5,9 +5,7 @@
 This document was built with its own conda environment.
 You can download the environment file that was used from the download link on the top-right of this article.
 :::
-# TODO day1-3 her tutorial includes importing instructions, are we including that?
-# TODO day4 importing data, do we need to include how to create a manifest file?
-# TODO day4 add demux summarize and view
+
 :::{describe-usage}
 :scope: amf-tutorial
 project_accession = use.init_artifact_from_url('project-accession',
@@ -44,16 +42,15 @@ metadata = use.init_metadata_from_url('metadata',
 :::
 
 #denoising 
-# TODO import sample-data-paired-end-sequences-with-quality-2.qza
-# this is the data from the power point for cutadapt : analysis/seqs/combined.qza
+# Check for primers using cutadapt, ?
 :::{describe-usage}
 trimmed_sequences = use.action(
     use.UsageAction(plugin_id='cutadapt', action_id='trim_paired'),
     use.UsageInputs(
-        demultiplexed_sequences='sample-data-paired-end-sequences-with-quality-2.qza',
+        demultiplexed_sequences=demux,
         cores=1,
-        front_f='AAGCTCGTAGTTGAATTTCG', # these are from the prov-replay
-        front_r='CCCAACTATCCCTATTAATCAT',
+        front_f='TCCTACGGGAGGCAGCAGT',
+        front_r='GAGTTTCCCGCAGGTTCAC',
         error_rate=0.2,
         ),
     use.UsageOutputNames(trimmed_sequences='trimmed_sequences'))
@@ -68,23 +65,12 @@ visualization_5 = use.action(
     use.UsageOutputNames(visualization='visualization_5'))
 :::
 
-# TODO cutadapt which adapters should be used?
-
-qiime cutadapt trim-paired \
---i-demultiplexed-sequences analysis/seqs/combined.qza \
---p-front-f TCCTACGGGAGGCAGCAGT \ # these are from the powerpoint
---p-front-r GAGTTTCCCGCAGGTTCAC \ # see note above
---p-error-rate 0.20 \
---output-dir analysis/seqs_trimmed_glom \
---verbose
-# TODO metadata tabulate?
-
 :::{describe-usage}
 table, denoising_stats, representative_sequences = use.action(
     use.UsageAction(plugin_id='dada2', action_id='denoise_paired'),
     use.UsageInputs(
         demultiplexed_seqs=demux,
-        trunc_len_f=240, #different from prov replay, changed to match pptx
+        trunc_len_f=240, #different from prov replay [200, 200],[240,240],[220,200], changed to match pptx
         trunc_len_r=220,
         ),
     use.UsageOutputNames(
@@ -95,28 +81,15 @@ table, denoising_stats, representative_sequences = use.action(
 )
 :::
 
-# TODO Denoising with dada2, should I remove all the default parameters above?
-qiime dada2 denoise-paired \
-    --i-demultiplexed-seqs demux.qza \
-    --p-trunc-len-f 240 \ #different from provenance
-    --p-trunc-len-r 220 \
-    --o-representative-sequences representative_sequences.qza \
-    --o-table table.qza \
-    --o-denoising-stats denoising-stats.qza
-
 :::{describe-usage}
+denoising_stats_md = use.view_as_metadata('denoising_stats_md', denoising_stats)
+
 dada2_stats_viz = use.action(
     use.UsageAction(plugin_id='metadata', action_id='tabulate'),
     use.UsageInputs(
-        input=denoising_stats),
+        input=denoising_stats_md),
     use.UsageOutputNames(visualization='stats-dada2'))
 :::
-
-qiime metadata tabulate \
-  --m-input-file denoising-stats.qza \
-  --o-visualization stats-dada2.qzv
-
-qiime tools view stats-dada2.qzv
 
 :::{describe-usage}
 rep_seqs_viz = use.action(
@@ -126,13 +99,6 @@ rep_seqs_viz = use.action(
     use.UsageOutputNames(visualization='rep-seqs'))
 :::
 
-qiime feature-table tabulate-seqs \
---i-data representative-sequences.qza \
---o-visualization rep-seqs.qzv
-
-Saved Visualization to: rep-seqs.qzv
-Qiime tools view rep-seqs.qzv
-
 :::{describe-usage}
 table_summary = use.action(
     use.UsageAction(plugin_id='feature_table', action_id='summarize'),
@@ -140,14 +106,6 @@ table_summary = use.action(
         table=table),
     use.UsageOutputNames(visualization='table'))
 :::
-
-qiime feature-table summarize \
---i-table table.qza \
---o-visualization table.qzv
-
-Saved Visualization to: table.qzv
-
-qiime tools view table.qzv
 
 # TODO Reference databases and Taxonomic classification, feature table filtering and building the phylogenetic tree
 
@@ -162,25 +120,28 @@ def maarjam_refseq_factory():
     return Artifact.import_data(
         'FeatureData[Sequence]', fp)
 
-otus_85 = use.init_artifact('otus_85', maarjam_refseq_factory)
+otus_85_maarjam = use.init_artifact('otus_85_maarjam', maarjam_refseq_factory)
 :::
 
+:::{describe-usage}
+def maarjam_taxonomy_factory():
+    from urllib import request
+    from qiime2 import Artifact
+    # Download the taxonomy TSV file
+    fp, _ = request.urlretrieve(
+        'https://www.dropbox.com/scl/fi/qe2z05fh9pe45eytl6f96/maarjam_database_SSU_TYPE.qiime.txt?rlkey=4ma85ti0l94378ctwxf4iwj5n&st=a2oc7ppj&dl=1')
+    # Import as a QIIME 2 artifact
+    return Artifact.import_data(
+        'FeatureData[Taxonomy]', fp, view_type='HeaderlessTSVTaxonomyFormat')
 
-# TODO qiime tools import \
-  --type 'FeatureData[Sequence]' \
-  --input-path maarjam_database_SSU_TYPE.qiime.fasta \
-  --output-path otus_85.qza
-# TODO qiime tools import \
-  --type 'FeatureData[Taxonomy]' \
-  --input-format HeaderlessTSVTaxonomyFormat \
-  --input-path maarjam_database_SSU_TYPE.qiime.txt \
-  --output-path ref-taxonomy.qza
+ref_taxonomy_maarjam = use.init_artifact('ref_taxonomy_maarjam', maarjam_taxonomy_factory)
+:::
 
 :::{describe-usage}
 ref_seqs, = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='extract_reads'),
     use.UsageInputs(
-        sequences=otus_85,
+        sequences=otus_85_maarjam,
         f_primer='AAGCTCGTAGTTGAATTTCG',
         r_primer='CCCAACTATCCCTATTAATCAT',
         trunc_len=250, # mismatched from 120 in provenance replay
@@ -199,19 +160,7 @@ qiime feature-classifier extract-reads \
   --p-max-length 400 \
   --o-reads ref-seqs.qza
 
-:::{describe-usage}
-def maarjam_taxonomy_factory():
-    from urllib import request
-    from qiime2 import Artifact
-    # Download the taxonomy TSV file
-    fp, _ = request.urlretrieve(
-        'https://www.dropbox.com/scl/fi/qe2z05fh9pe45eytl6f96/maarjam_database_SSU_TYPE.qiime.txt?rlkey=4ma85ti0l94378ctwxf4iwj5n&st=a2oc7ppj&dl=1')
-    # Import as a QIIME 2 artifact
-    return Artifact.import_data(
-        'FeatureData[Taxonomy]', fp, view_type='HeaderlessTSVTaxonomyFormat')
 
-ref_taxonomy = use.init_artifact('ref_taxonomy', maarjam_taxonomy_factory)
-:::
 
 :::{describe-usage}
 classifier, = use.action(
