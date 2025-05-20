@@ -138,7 +138,7 @@ ref_taxonomy_maarjam = use.init_artifact('ref_taxonomy_maarjam', maarjam_taxonom
 :::
 
 :::{describe-usage}
-ref_seqs, = use.action(
+ref_seqs_maarjam, = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='extract_reads'),
     use.UsageInputs(
         sequences=otus_85_maarjam,
@@ -148,86 +148,40 @@ ref_seqs, = use.action(
         min_length=100,
         max_length=400,
         ),
-    use.UsageOutputNames(reads='ref_seqs'))
+    use.UsageOutputNames(reads='ref_seqs_maarjam'))
 :::
 
-qiime feature-classifier extract-reads \
-  --i-sequences 85_otus.qza \
-  --p-f-primer AAGCTCGTAGTTGAATTTCG \
-  --p-r-primer CCCAACTATCCCTATTAATCAT \
-  --p-trunc-len 250 \ # mismatched
-  --p-min-length 100 \
-  --p-max-length 400 \
-  --o-reads ref-seqs.qza
-
-
-
 :::{describe-usage}
-classifier, = use.action(
+classifier_maarjam, = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='fit_classifier_naive_bayes'),
     use.UsageInputs(
-        reference_reads=ref_seqs,
-        reference_taxonomy=ref_taxonomy,
+        reference_reads=ref_seqs_maarjam,
+        reference_taxonomy=ref_taxonomy_maarjam,
         ),
-    use.UsageOutputNames(classifier='classifier'))
+    use.UsageOutputNames(classifier='classifier_maarjam'))
 :::
 
-qiime feature-classifier fit-classifier-naive-bayes \
-  --i-reference-reads ref-seqs.qza \
-  --i-reference-taxonomy ref-taxonomy.qza \
-  --o-classifier classifier.qza
-
 :::{describe-usage}
-taxonomy, = use.action(
+taxonomy_maarjam, = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='classify_sklearn'),
     use.UsageInputs(
         reads=representative_sequences,
-        classifier=classifier,
+        classifier=classifier_maarjam,
         confidence=0.7,
         n_jobs=1,
         read_orientation='auto'),
-    use.UsageOutputNames(classification='taxonomy'))
+    use.UsageOutputNames(classification='taxonomy_maarjam'))
 :::
 
-qiime feature-classifier classify-sklearn \
-  --i-classifier classifier.qza \
-  --i-reads representative-sequences.qza \
-  --o-classification taxonomy.qza
-
 :::{describe-usage}
-taxonomy_viz = use.action(
+taxonomy_maarjam_md = use.view_as_metadata('taxonomy_maarjam_md', taxonomy_maarjam)
+use.action(
     use.UsageAction(plugin_id='metadata', action_id='tabulate'),
     use.UsageInputs(
-        input=taxonomy),
+        input=taxonomy_maarjam_md),
     use.UsageOutputNames(
-        visualization='taxonomy'))
+        visualization='taxonomy_maarjam_md'))
 :::
-
-qiime metadata tabulate \
-  --m-input-file taxonomy.qza \
-  --o-visualization taxonomy.qzv
-
-qiime tools view taxonomy.qza
-
-:::{describe-usage}
-rooted_tree, unrooted_tree, aligned_rep_seqs, masked_aligned_rep_seqs = use.action(
-    use.UsageAction(plugin_id='phylogeny', action_id='align_to_tree_mafft_fasttree'),
-    use.UsageInputs(
-        sequences=representative_sequences,
-        ),
-    use.UsageOutputNames(
-        rooted_tree='rooted_tree',
-        tree='unrooted_tree',
-        alignment='aligned_rep_seqs',
-        masked_alignment='masked_aligned_rep_seqs'))
-:::
-
-qiime phylogeny align-to-tree-mafft-fasttree \
-  --i-sequences representative-sequences.qza \
-  --o-alignment aligned-rep-seqs.qza \
-  --o-masked-alignment masked-aligned-rep-seqs.qza \
-  --o-tree unrooted-tree.qza \
-  --o-rooted-tree rooted-tree.qza
 
 # day 8 
 :::{describe-usage}
@@ -235,8 +189,8 @@ rice_taxonomy_maarjAM, rice_search_results_maarjAM = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='classify_consensus_vsearch'),
     use.UsageInputs(
         query=representative_sequences,
-        reference_reads=otus_85,
-        reference_taxonomy=ref_taxonomy,
+        reference_reads=otus_85_maarjam,
+        reference_taxonomy=ref_taxonomy_maarjam,
         maxaccepts=1,
         perc_identity=0.99,
         strand='both',
@@ -247,20 +201,8 @@ rice_taxonomy_maarjAM, rice_search_results_maarjAM = use.action(
         search_results='rice_search_results_maarjAM'))
 :::
 
-qiime feature-classifier classify-consensus-vsearch \
-  --i-query rep-seq_rice.qza  \
-  --i-reference-reads otus_85._maarjaas.qza \
-  --i-reference-taxonomy ref-taxonomy_maarjaas.qza \
-  --p-perc-identity 0.99 \
-  --p-top-hits-only \
-  --p-maxaccepts 1 \
-  --p-strand 'both' \
-  --p-unassignable-label 'Unassigned' \
-  --o-classification rice_taxonomy_maarjAM_aligned_rep_seqs.qza \
-  --o-search-results rice_search-results_maarjAM_0.99.qza
-
 :::{describe-usage}
-table_rice_unassigned_maarjAM = use.action(
+table_rice_unassigned_maarjAM, = use.action(
     use.UsageAction(plugin_id='taxa', action_id='filter_table'),
     use.UsageInputs(
         table=table, #table_rice?
@@ -271,14 +213,17 @@ table_rice_unassigned_maarjAM = use.action(
     use.UsageOutputNames(filtered_table='table_rice_unassigned_maarjAM'))
 :::
 
-qiime taxa filter-table \
-  --i-table table_rice.qza \
-  --i-taxonomy rice_taxonomy_maarjaAM_0.99.qza \
-  --p-include "Unassigned" \
-  --o-filtered-table table-rice-unassigned_maarjAM.qza
+:::{describe-usage}
+rep_seq_rice_unassigned_maarjAM = use.action(
+    use.UsageAction(plugin_id='feature_table', action_id='filter_seqs'),
+    use.UsageInputs(
+        data=representative_sequences,
+        table=table_rice_unassigned_maarjAM),
+    use.UsageOutputNames(filtered_data='rep_seq_rice_unassigned_maarjAM'))
+:::
 
 :::{describe-usage}
-filtered_unassigned_table = use.action(
+filtered_unassigned_table, = use.action(
     use.UsageAction(plugin_id='taxa', action_id='filter_table'),
     use.UsageInputs(
         table=table, #table_rice?
@@ -289,26 +234,6 @@ filtered_unassigned_table = use.action(
     use.UsageOutputNames(filtered_table='maarjAM_Glomeromycetes_seqs'))
 :::
 
-qiime taxa filter-table \
-  --i-table table_rice.qza \
-  --i-taxonomy rice_taxonomy_maarjaAM_0.99.qza \
-  --p-include c__Glomeromycetes \
-  --o-filtered-table maarjAM_Glomeromycetes-seqs.qza
-
-:::{describe-usage}
-rep_seq_rice_unassigned_maarjAM = use.action(
-    use.UsageAction(plugin_id='feature_table', action_id='filter_seqs'),
-    use.UsageInputs(
-        data=representative_sequences,
-        table=table_rice_unassigned_maarjAM),
-    use.UsageOutputNames(filtered_data='rep_seq_rice_unassigned_maarjAM'))
-:::
-
-qiime feature-table filter-seqs \
-  --i-data rep-seq_rice.qza \
-  --i-table table-rice-unassigned_maarjAM.qza \
-  --o-filtered-data rep-seq-rice-unassigned_maarjAM.qza
-
 # silva
 :::{describe-usage}
 def silva_seqs_factory():
@@ -318,6 +243,10 @@ def silva_seqs_factory():
     fp, _ = request.urlretrieve(url)
     return Artifact.load(fp)
 
+silva_138_99_seqs = use.init_artifact('silva_138_99_seqs', silva_seqs_factory)
+:::
+
+:::{describe-usage}
 def silva_tax_factory():
     from urllib import request
     from qiime2 import Artifact
@@ -325,7 +254,6 @@ def silva_tax_factory():
     fp, _ = request.urlretrieve(url)
     return Artifact.load(fp)
 
-silva_138_99_seqs = use.init_artifact('silva_138_99_seqs', silva_seqs_factory)
 silva_138_99_tax = use.init_artifact('silva138_99_tax', silva_tax_factory)
 :::
 
@@ -346,29 +274,13 @@ rice_taxonomy_assigned_silva, rice_search_results_assigned_silva = use.action(
         search_results='rice_search_results_assigned_silva'))
 :::
 
-qiime feature-classifier classify-consensus-vsearch \
-  --i-query rep-seq-rice-unassigned_maarjAM.qza  \
-  --i-reference-reads silva-138-99-seqs.qza \
-  --i-reference-taxonomy silva-138-99-tax.qza \
-  --p-perc-identity 0.99 \
-  --p-top-hits-only \
-  --p-maxaccepts 1 \
-  --p-strand 'both' \
-  --p-unassignable-label 'Unassigned' \
-  --o-classification rice_taxonomy_assigned_silva_0.99.qza \
-  --o-search-results rice_search-results_assigned_silva_0.99.qza
-
 :::{describe-usage}
-merged_taxonomy = use.action(
+merged_taxonomy, = use.action(
     use.UsageAction(plugin_id='feature_table', action_id='merge_taxa'),
     use.UsageInputs(
         data=[rice_taxonomy_maarjAM, rice_taxonomy_assigned_silva]),
     use.UsageOutputNames(merged_data='merged_taxonomy'))
 :::
-
-qiime feature-table merge-taxa
---i-data rice_taxonomy_maarjAM_0.99.qza rice_taxonomy_assigned_silva_0.99.qza \
---o-merged-data merged-taxonomy.qza
 
 :::{describe-usage}
 taxa_bar_plots = use.action(
@@ -380,15 +292,7 @@ taxa_bar_plots = use.action(
     use.UsageOutputNames(visualization='taxa_bar_plots'))
 :::
 
-qiime taxa barplot \
-  --i-table table.qza \
-  --i-taxonomy merged-taxonomy.qza \
-  --m-metadata-file metadata_file_rice.tsv \
-  --o-visualization taxa-bar-plots.qzv
-
-# Filtering taxa 
-
-#Traditional rice
+# Filtering taxa
 
 :::{describe-usage}
 traditional_rice_table, = use.action(
@@ -400,13 +304,6 @@ traditional_rice_table, = use.action(
     use.UsageOutputNames(filtered_table='traditional_rice_table'))
 :::
 
-qiime feature-table filter-samples \
-  --i-table table.qza \
-  --m-metadata-file metadata_file_rice.tsv \
-  --p-where "[env_broad_scale]='Traditional rice root'" \
-  --o-filtered-table traditional_rice-table.qza
-
-
 :::{describe-usage}
 traditional_rice_table_viz = use.action(
     use.UsageAction(plugin_id='feature_table', action_id='summarize'),
@@ -414,14 +311,6 @@ traditional_rice_table_viz = use.action(
         table=traditional_rice_table),
     use.UsageOutputNames(visualization='traditional_rice_table'))
 :::
-
-qiime feature-table summarize \
---i-table traditional_rice-table.qza \
---o-visualization traditional_rice-table.qzv 
-
-# TODO qiime tools view traditional_rice-table.qzv
-
-#modern rice
 
 :::{describe-usage}
 modern_rice_table, = use.action(
@@ -433,12 +322,6 @@ modern_rice_table, = use.action(
     use.UsageOutputNames(filtered_table='modern_rice_table'))
 :::
 
-qiime feature-table filter-samples \
-  --i-table table.qza \
-  --m-metadata-file metadata_file_rice.tsv \
-  --p-where "[env_broad_scale]='Modern rice root'" \
-  --o-filtered-table modern_rice-table.qza
-
 :::{describe-usage}
 modern_rice_table_viz = use.action(
     use.UsageAction(plugin_id='feature_table', action_id='summarize'),
@@ -446,15 +329,6 @@ modern_rice_table_viz = use.action(
         table=modern_rice_table),
     use.UsageOutputNames(visualization='modern_rice_table'))
 :::
-
-qiime feature-table summarize \
---i-table Modern_rice-table.qza \
---o-visualization Modern_rice-table.qzv
-
-
-# TODO qiime tools view Modern_rice-table.qzv
-
-ASV relative abundance bar chart
 
 :::{describe-usage}
 taxa_bar_plot = use.action(
@@ -466,17 +340,7 @@ taxa_bar_plot = use.action(
     use.UsageOutputNames(visualization='taxa_bar_plots'))
 :::
 
-qiime taxa barplot \
-    --i-table table.qza \
-    --i-taxonomy taxonomy.qza \
-    --m-metadata-file metadata_file_rice.tsv \ 
-    --o-visualization taxa-bar-plots.qzv
-
-
-
-# TODO qiime tools view taxa-bar-plots.qzv
-
-Differential abundance (ANCOM-BC)
+# Differential abundance (ANCOM-BC)
 
 :::{describe-usage}
 glomeromycetes_table = use.action(
@@ -488,14 +352,6 @@ glomeromycetes_table = use.action(
     use.UsageOutputNames(filtered_table='Glomeromycetes'))
 :::
 
-qiime taxa filter-table \
-  --i-table table.qza \
-  --i-taxonomy merged-taxonomy.qza \
-  --p-include p__Mucoromycota \
-  --o-filtered-table Glomeromycetes.qza
-
-#we observed some contamination
-
 :::{describe-usage}
 collapsed_table_lvl6 = use.action(
     use.UsageAction(plugin_id='taxa', action_id='collapse'),
@@ -505,13 +361,6 @@ collapsed_table_lvl6 = use.action(
         level=6),
     use.UsageOutputNames(collapsed_table='collapsed_table_level_6'))
 :::
-
-qiime taxa collapse \
-  --i-table Glomeromycetes.qza \
-  --i-taxonomy merged-taxonomy.qza \
-  --p-level 6 \
-  --o-collapsed-table collapsed-table-level-6.qza
-
 
 :::{describe-usage}
 l6_ancombc_diffs = use.action(
@@ -523,12 +372,6 @@ l6_ancombc_diffs = use.action(
     use.UsageOutputNames(differentials='l6_ancombc_differentials'))
 :::
 
-qiime composition ancombc \
-  --i-table collapsed-table-level-6.qza \
-  --m-metadata-file metadata_file_rice.tsv \
-  --p-formula 'env_broad_scale' \
-  --o-differentials l6-ancombc-differentials.qza
-
 :::{describe-usage}
 l6_da_barplot = use.action(
     use.UsageAction(plugin_id='composition', action_id='da-barplot'),
@@ -539,13 +382,20 @@ l6_da_barplot = use.action(
     use.UsageOutputNames(visualization='l6_da_barplot'))
 :::
 
-qiime composition da-barplot \
-  --i-data l6-ancombc-differentials.qza \
-  --p-significance-threshold 0.01 \
-  --p-level-delimiter ';' \
-  --o-visualization l6-da-barplot.qzv
+# alpha rarefaction and core metrics
 
-# TODO Day 9 alpha rarefaction and core metrics
+:::{describe-usage}
+rooted_tree, unrooted_tree, aligned_rep_seqs, masked_aligned_rep_seqs = use.action(
+    use.UsageAction(plugin_id='phylogeny', action_id='align_to_tree_mafft_fasttree'),
+    use.UsageInputs(
+        sequences=representative_sequences,
+        ),
+    use.UsageOutputNames(
+        rooted_tree='rooted_tree',
+        tree='unrooted_tree',
+        alignment='aligned_rep_seqs',
+        masked_alignment='masked_aligned_rep_seqs'))
+:::
 
 :::{describe-usage}
 alpha_rarefaction_plot = use.action(
@@ -558,13 +408,6 @@ alpha_rarefaction_plot = use.action(
         ),
     use.UsageOutputNames(visualization='alpha_rarefaction'))
 :::
-
-qiime diversity alpha-rarefaction \
-  --i-table table.qza \
-  --i-phylogeny rooted-tree.qza \
-  --p-max-depth 13,299 \
-  --m-metadata-file metadata_file_rice.tsv \
-  --o-visualization alpha-rarefaction.qzv
 
 :::{describe-usage}
 core_metrics_outputs = use.action(
@@ -595,60 +438,38 @@ core_metrics_outputs = use.action(
         unweighted_unifrac_pcoa_results='unweighted-unifrac-pcoa-results'))
 :::
 
-qiime diversity core-metrics-phylogenetic \
-  --i-phylogeny rooted-tree.qza \
-  --i-table table.qza \
-  --p-sampling-depth 1602\
-  --m-metadata-file metadata_file_rice.tsv \
-  --output-dir core-metrics-results
-
 :::{describe-usage}
 shannon_group_significance = use.action(
     use.UsageAction(plugin_id='diversity', action_id='alpha_group_significance'),
     use.UsageInputs(
-        alpha_diversity=shannon_vector,
+        alpha_diversity=core_metrics_outputs.shannon_vector,
         metadata=metadata),
     use.UsageOutputNames(visualization='shannon_group_significance'))
 :::
-
-qiime diversity alpha-group-significance \
-  --i-alpha-diversity shannon_vector.qza \
-  --m-metadata-file metadata_file_rice.tsv \
-  --o-visualization shannon_group_significance
 
 :::{describe-usage}
 evenness_group_significance = use.action(
     use.UsageAction(plugin_id='diversity', action_id='alpha_group_significance'),
     use.UsageInputs(
-        alpha_diversity=evenness_vector,
+        alpha_diversity=core_metrics_outputs.evenness_vector,
         metadata=metadata),
     use.UsageOutputNames(visualization='evenness_group_significance'))
 :::
-
-qiime diversity alpha-group-significance \
-  --i-alpha-diversity core-metrics-results/evenness_vector.qza \
-  --m-metadata-file metadata_file_rice.tsv \
-  --o-visualization evenness-group-significance.qzv
 
 :::{describe-usage}
 faith_pd_group_significance = use.action(
     use.UsageAction(plugin_id='diversity', action_id='alpha_group_significance'),
     use.UsageInputs(
-        alpha_diversity=faith_pd_vector,
+        alpha_diversity=core_metrics_outputs.faith_pd_vector,
         metadata=metadata),
     use.UsageOutputNames(visualization='visualization_alphasignificance_faith'))
 :::
-
-qiime diversity alpha-group-significance \
-    --i-alpha-diversity core-metrics-results/faith_pd_vector.qza \
-    --m-metadata-file metadata_file_rice.tsv \
-    --o-visualization core-metrics-results/ visualization_alphasignificance_faith.qzv
 
 :::{describe-usage}
 beta_group_significance_simple = use.action(
     use.UsageAction(plugin_id='diversity', action_id='beta_group_significance'),
     use.UsageInputs(
-        distance_matrix=unweighted_unifrac_distance_matrix,
+        distance_matrix=core_metrics_outputs.unweighted_unifrac_distance_matrix,
         metadata=metadata,
         metadata_column='env_broad_scale',
         method='permanova',
@@ -657,17 +478,11 @@ beta_group_significance_simple = use.action(
     use.UsageOutputNames(visualization='unweighted_unifrac_subject_group_significance'))
 :::
 
-qiime diversity beta-group-significance \
-  --i-distance-matrix unweighted_unifrac_distance_matrix.qza \
-  --m-metadata-file metadata_file_rice.tsv \
-  --m-metadata-column env_broad_scale \
-  --o-visualization unweighted-unifrac-subject-group-significance.qzv
-
 :::{describe-usage}
 beta_group_significance = use.action(
     use.UsageAction(plugin_id='diversity', action_id='beta_group_significance'),
     use.UsageInputs(
-        distance_matrix=unweighted_unifrac_distance_matrix,
+        distance_matrix=core_metrics_outputs.unweighted_unifrac_distance_matrix,
         metadata=metadata,
         metadata_column='Sample_Name',
         method='permanova',
@@ -675,10 +490,3 @@ beta_group_significance = use.action(
         permutations=999),
     use.UsageOutputNames(visualization='unweighted_unifrac_body_site_significance'))
 :::
-
-qiime diversity beta-group-significance \
-  --i-distance-matrix unweighted_unifrac_distance_matrix.qza \
-  --m-metadata-file metadata_file_rice.tsv \
-  --m-metadata-column Sample_Name \
-  --o-visualization unweighted-unifrac-body-site-significance.qzv \
-  —p-pairwise
