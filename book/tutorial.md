@@ -1,6 +1,24 @@
 (tutorial)=
 # Tutorial
 
+Sample metadata
+This study investigates differences in AMF communities between modern high-yielding rice varieties (BR28, BR29, BR58) and local traditional varieties (Shampakatar, Ushapari), sampled from eight rice fields with five soil samples each. A total of 200 samples were collected, of which subsample of  143 AMF-relevant samples (79 from modern and 64 from traditional varieties), to test the hypothesis recorded in the metadata file. 
+Before starting the analysis, explore the sample metadata to familiarize yourself with the samples used in this study. The following command will download the sample metadata as tab-separated text and save it in the file sample-metadata.tsv. This sample-metadata.tsv file is used throughout the rest of the tutorial. 
+
+Obtaining the data
+Explain NCBI SRA if needed 
+
+
+In QIIME 2, all data is structured as an Artifact of a specific semantic type. Artifacts contain the data as well as information about the data, including a record of the original data and the tools used to process it. This allows for better tracking of how you actually got to where you are in your analysis. You can learn more about common QIIME 2 Artifacts and semantic types here.
+
+qiime demux summarize \
+    --i-data demux.qza \
+    --o-visualization visualization.qzv
+
+
+
+![image](https://github.com/user-attachments/assets/e2e126e6-429b-4b21-a5e1-c713f62d0c97)
+
 :::{note}
 This document was built with its own conda environment.
 You can download the environment file that was used from the download link on the top-right of this article.
@@ -35,6 +53,7 @@ use.action(
     use.UsageInputs(data=demux),
     use.UsageOutputNames(visualization='demux'))
 :::
+
 
 :::{describe-usage}
 metadata = use.init_metadata_from_url('metadata',
@@ -518,3 +537,4 @@ beta_group_significance = use.action(
         permutations=999),
     use.UsageOutputNames(visualization='unweighted_unifrac_body_site_significance'))
 :::
+
