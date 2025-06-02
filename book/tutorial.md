@@ -7,51 +7,6 @@ Before starting the analysis, explore the sample metadata to familiarize yoursel
 
 Obtaining the data
 Explain NCBI SRA if needed 
-cd fastq
-mkdir manifest
-
-echo "# paired-end PHRED 33 fastq manifest file for forward and reverse reads" > manifest1.txt
-
-#Create a new file called manifest1.txt.Insert the text # paired-end PHRED 33 fastq manifest file for forward and reverse reads into that file as a comment (indicated by the # at the start).
-
-echo -e "sample-id\tforward-absolute-filepath\treverse-absolute-filepath" >> manifest1.txt
-
-#will append the following line to the manifest1.txt file:
-sample-id  forward-absolute-filepath  reverse-absolute-filepath for your system
-
-ls *.fastq | cut -d "_" -f 1 | sort | uniq | while read prefix; do     echo -e "$prefix\t$PWD/${prefix}_1.fastq\t$PWD/${prefix}_2.fastq"; done > manifest2.txt 
- 
-#The command you've provided generates a manifest file for paired-end sequencing reads.  
-cat manifest1.txt manifest2.txt  > manifest/manifest.tsv
-#Delete text files
-rm *.txt
-cd .. 
-
- tip : # it’s a good idea to view your manifest file by the command cat  command 
-
-cat manifest/manifest.tsv
-
-It will show path of your files.
-
-
-b.	Importing the data
-
-cd  Rice_metgenomics 
-
-# Activate the qiime environment 
-
-conda activate qiime2-amplicon-2024.5
-
-#Change the path to your manifest file
-
-qiime tools import \
-        --type 'SampleData[PairedEndSequencesWithQuality]' \
-        --input-path fastq/manifest/manifest.tsv \
-        --output-path demux.qza \
-        --input-format PairedEndFastqManifestPhred33V2
-
-
-
 
 Sequence data visualization
 
