@@ -7,21 +7,6 @@ Before starting the analysis, explore the sample metadata to familiarize yoursel
 
 Obtaining the data
 Explain NCBI SRA if needed 
-A portion of manifest file will look like this.
-
-sample-id	forward-absolute-filepath	reverse-absolute-filepath
-SRR13445888	/Users/manjum.gupta/Desktop/Rice_metagenomics_data_files/fastq/SRR13445888_1.fastq	/Users/manjum.gupta/Desktop/Rice_metagenomics_data_files/fastq/SRR13445888_2.fastq
-SRR13445889	/Users/manjum.gupta/Desktop/Rice_metagenomics_data_files/fastq/SRR13445889_1.fastq	/Users/manjum.gupta/Desktop/Rice_metagenomics_data_files/fastq/SRR13445889_2.fastq
-SRR13445890	/Users/manjum.gupta/Desktop/Rice_metagenomics_data_files/fastq/SRR13445890_1.fastq	/Users/manjum.gupta/Desktop/Rice_metagenomics_data_files/fastq/SRR13445890_2.fastq
-SRR13445891	/Users/manjum.gupta/Desktop/Rice_metagenomics_data_files/fastq/SRR13445891_1.fastq	/Users/manjum.gupta/Desktop/Rice_metagenomics_data_files/fastq/SRR13445891_2.fastq
-
-We will import the sequences as SampleData[SequencesWithQuality], which is the demultiplexed single-end sequence format. If we wanted to import paired-sequences, we would specify the semantic type SampleData[PairedEndSequencesWithQuality].
-
-  manifest file needs to be created and saved in the fastq files of your system because the path in this file will work only on my system (/users/manjum.gupta/Desktop/Rice_metagenomics_data_files/fastq/SRR13445888_1.fastq) . Run the commands provided to you in creating _manifest_file.txt to create manifest file for path fastq files in your laptop.
-
-
-a.	Creating a manifest file 
-
 cd fastq
 mkdir manifest
 
