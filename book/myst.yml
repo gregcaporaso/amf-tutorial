@@ -2,11 +2,11 @@
 version: 1
 project:
   id: amf-tutorial
-  title: AMF analysis tutorial
+  title: Arbuscular Mycorrhiza Fungi (AMF) analysis tutorial
   # description:
   keywords: ["QIIME", "QIIME 2", "microbiome", "metagenome"]
   # uncommenting "authors" will put the author list on every page
-  # authors: ["Caporaso Lab"]
+  # authors: ["Dr. Manju Gupta, and the Caporaso Lab"]
   # github:
   references:
     q2doc-api-target: https://develop.qiime2.org/en/latest/
