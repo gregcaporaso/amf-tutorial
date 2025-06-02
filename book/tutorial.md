@@ -42,7 +42,7 @@ metadata = use.init_metadata_from_url('metadata',
 :::
 
 # Denoising
-
+TODO: TIME RUNNING 11 minutes
 :::{describe-usage}
 table, denoising_stats, representative_sequences = use.action(
     use.UsageAction(plugin_id='dada2', action_id='denoise_paired'),
@@ -101,6 +101,7 @@ def maarjam_refseq_factory():
 otus_85_maarjam = use.init_artifact('otus_85_maarjam', maarjam_refseq_factory)
 :::
 
+
 :::{describe-usage}
 def maarjam_taxonomy_factory():
     from urllib import request
@@ -113,6 +114,7 @@ def maarjam_taxonomy_factory():
         'FeatureData[Taxonomy]', fp, view_type='HeaderlessTSVTaxonomyFormat')
 
 ref_taxonomy_maarjam = use.init_artifact('ref_taxonomy_maarjam', maarjam_taxonomy_factory)
+
 :::
 
 :::{describe-usage}
@@ -128,16 +130,6 @@ ref_seqs_maarjam, = use.action(
         ),
     use.UsageOutputNames(reads='ref_seqs_maarjam'))
 :::
-
-:::{describe-usage}
-classifier_maarjam = use.init_artifact_from_url('classifier_maarjam,
-                                   'https://www.dropbox.com/scl/fi/08aeme2zspkrt3q5bjmtu/classifier-maarjam.qza?rlkey=acl2ch723nf13spq25sp48ro4&st=itnbg5bu&dl=1')
-:::
-
-:::{describe-usage}
-taxonomy_maarjam = use.init_artifact_from_url('taxonomy_maarjam,
-                                   'https://www.dropbox.com/scl/fi/my2oc0qt0t67u1kgwcrlt/taxonomy-maarjam.qza?rlkey=f3x38pyyhhb2aq7yrdsbabjw9&st=wz36byr7&dl=1')
-:::
 <!-- :::{describe-usage}
 classifier_maarjam, = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='fit_classifier_naive_bayes'),
@@ -147,7 +139,17 @@ classifier_maarjam, = use.action(
         ),
     use.UsageOutputNames(classifier='classifier_maarjam'))
 ::: -->
+```
+qiime feature-classifier fit-classifier-naive-bayes \
+    --i-reference-reads ref-seqs-maarjam.qza \
+    --i-reference-taxonomy ref-taxonomy-maarjam.qza \
+    --o-classifier classifier-maarjam.qza \
+```
 
+:::{describe-usage}
+classifier_maarjam = use.init_artifact_from_url('classifier_maarjam',
+                                   'https://www.dropbox.com/scl/fi/08aeme2zspkrt3q5bjmtu/classifier-maarjam.qza?rlkey=acl2ch723nf13spq25sp48ro4&st=itnbg5bu&dl=1')
+:::
 <!-- :::{describe-usage}
 taxonomy_maarjam, = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='classify_sklearn'),
@@ -160,7 +162,20 @@ taxonomy_maarjam, = use.action(
     use.UsageOutputNames(classification='taxonomy_maarjam'))
 ::: -->
 
-<!-- :::{describe-usage}
+```
+qiime feature-classifier classify-sklearn \
+    --i-reads representative-sequences.qza \
+    --i-classifier classifier-maarjam.qza \
+    --p-confidence 0.7 \
+    --o-classification taxonomy-maarjam.qza
+```
+
+:::{describe-usage}
+taxonomy_maarjam = use.init_artifact_from_url('taxonomy_maarjam',
+                                   'https://www.dropbox.com/scl/fi/my2oc0qt0t67u1kgwcrlt/taxonomy-maarjam.qza?rlkey=f3x38pyyhhb2aq7yrdsbabjw9&st=wz36byr7&dl=1')
+:::
+
+:::{describe-usage}
 taxonomy_maarjam_md = use.view_as_metadata('taxonomy_maarjam_md', taxonomy_maarjam)
 use.action(
     use.UsageAction(plugin_id='metadata', action_id='tabulate'),
@@ -168,9 +183,23 @@ use.action(
         input=taxonomy_maarjam_md),
     use.UsageOutputNames(
         visualization='taxonomy_maarjam_md'))
-::: -->
+:::
 
 # day 8 
+
+```
+ qiime feature-classifier classify-consensus-vsearch \
+    --i-query representative-sequences.qza \
+    --i-reference-reads otus-85-maarjam.qza \
+    --i-reference-taxonomy ref-taxonomy-maarjam.qza \
+    --p-perc-identity 0.99 \
+    --p-top-hits-only \
+    --p-maxaccepts 1 \
+    --p-strand 'both' \
+    --p-unassignable-label 'Unassigned' \
+    --o-classification rice-taxonomy-maarjAM.qza \ --o-search-results rice-search-results-maarjAM.qza 
+```
+
 :::{describe-usage}
 rice_taxonomy_maarjAM, rice_search_results_maarjAM = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='classify_consensus_vsearch'),
@@ -244,7 +273,21 @@ def silva_tax_factory():
 silva_138_99_tax = use.init_artifact('silva138_99_tax', silva_tax_factory)
 :::
 
-:::{describe-usage}
+## This is what is taking so long
+```
+ qiime feature-classifier classify-consensus-vsearch \
+    --i-query rep-seq-rice-unassigned-maarjAM.qza \
+    --i-reference-reads silva-138-99-seqs.qza \
+    --i-reference-taxonomy silva138-99-tax.qza \
+    --p-perc-identity 0.99 \
+    --p-top-hits-only \
+    --p-maxaccepts 1 \
+    --p-strand 'both' \
+    --p-unassignable-label 'Unassigned' \
+    --o-classification rice-taxonomy-assigned-silva.qza --o-search-results rice-search-results-assigned-silva.qza 
+```
+
+<!-- :::{describe-usage}
 rice_taxonomy_assigned_silva, rice_search_results_assigned_silva = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='classify_consensus_vsearch'),
     use.UsageInputs(
@@ -259,6 +302,10 @@ rice_taxonomy_assigned_silva, rice_search_results_assigned_silva = use.action(
     use.UsageOutputNames(
         classification='rice_taxonomy_assigned_silva',
         search_results='rice_search_results_assigned_silva'))
+:::-->
+:::{describe-usage}
+rice_taxonomy_assigned_silva = use.init_artifact_from_url(
+                                'rice_taxonomy_assigned_silva', 'https://www.dropbox.com/scl/fi/q84hfc1ghtrthael2ij77/rice-taxonomy-assigned-silva.qza?rlkey=7tz6odze2rpglj8ubhq5m9t6h&st=qguiyovg&dl=1')
 :::
 
 :::{describe-usage}
@@ -320,7 +367,7 @@ modern_rice_table_viz = use.action(
 # Differential abundance (ANCOM-BC)
 
 :::{describe-usage}
-glomeromycetes_table = use.action(
+glomeromycetes_table, = use.action(
     use.UsageAction(plugin_id='taxa', action_id='filter_table'),
     use.UsageInputs(
         table=table,
@@ -330,7 +377,7 @@ glomeromycetes_table = use.action(
 :::
 
 :::{describe-usage}
-collapsed_table_lvl6 = use.action(
+collapsed_table_level_6, = use.action(
     use.UsageAction(plugin_id='taxa', action_id='collapse'),
     use.UsageInputs(
         table=glomeromycetes_table,
@@ -340,7 +387,7 @@ collapsed_table_lvl6 = use.action(
 :::
 
 :::{describe-usage}
-l6_ancombc_diffs = use.action(
+l6_ancombc_diffs, = use.action(
     use.UsageAction(plugin_id='composition', action_id='ancombc'),
     use.UsageInputs(
         table=collapsed_table_level_6,
@@ -444,7 +491,7 @@ faith_pd_group_significance = use.action(
 
 :::{describe-usage}
 
-env_broad_col = use.get_metadata_column('env_broad_scale', metadata)
+env_broad_col = use.get_metadata_column('env_broad_scale', 'env_broad_scale', metadata)
 
 beta_group_significance_simple = use.action(
     use.UsageAction(plugin_id='diversity', action_id='beta_group_significance'),
@@ -452,14 +499,14 @@ beta_group_significance_simple = use.action(
         distance_matrix=core_metrics_outputs.unweighted_unifrac_distance_matrix,
         metadata=env_broad_col,
         method='permanova',
-        no_pairwise=True,
+        pairwise=True,
         permutations=999),
     use.UsageOutputNames(visualization='unweighted_unifrac_subject_group_significance'))
 :::
 
 :::{describe-usage}
 
-sample_name_col = use.get_metadata_column('Sample_Name', metadata)
+sample_name_col = use.get_metadata_column('Sample_Name', 'Sample_Name', metadata)
 
 beta_group_significance = use.action(
     use.UsageAction(plugin_id='diversity', action_id='beta_group_significance'),
