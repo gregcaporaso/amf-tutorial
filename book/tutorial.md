@@ -8,7 +8,6 @@ Before starting the analysis, explore the sample metadata to familiarize yoursel
 Obtaining the data
 Explain NCBI SRA if needed 
 
-Sequence data visualization
 
 In QIIME 2, all data is structured as an Artifact of a specific semantic type. Artifacts contain the data as well as information about the data, including a record of the original data and the tools used to process it. This allows for better tracking of how you actually got to where you are in your analysis. You can learn more about common QIIME 2 Artifacts and semantic types here.
 
