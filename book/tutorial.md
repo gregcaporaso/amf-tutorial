@@ -7,26 +7,6 @@ Before starting the analysis, explore the sample metadata to familiarize yoursel
 
 Obtaining the data
 Explain NCBI SRA if needed 
-Importing data
-
-mkdir Rice_metagenomics
-
-Download in directory Rice_metagenomics. The Rice_metagenomics directory contains a fastq subdirectory with 289 files, representing forward (R1) and reverse (R2) reads for 143 samples. The sequences are paired end sequences. Each sample has its own pair of FASTQ files, indicating that the sequences are already demultiplexed. It makes sense to study your fastq files before going ahead.
-To import demultiplexed paired-end sequences into QIIME 2, the FASTQ files must follow the Cassava 1.8 format, which uses a specific naming convention. In this format, each file name includes the sample ID, sequencing lane, read direction, and other metadata.
-For example, the forward and reverse reads for a single sample might be named:
-•	L2S357_15_L001_R1_001.fastq.gz → Forward read
-•	L2S357_15_L001_R2_001.fastq.gz → Reverse read
-This format allows QIIME 2 to recognize and organize the files correctly during the import step.
-The underscore-separated fields in this file name are: 
-the sample identifier, L2S357
-the barcode sequence or a barcode identifier, 15
-the lane number, L001
-the direction of the read i.e. R1 (forward) or R2 (reverse), the set number. 
-
-Our data is not in Cassava 1.8 format, so we need to manually import it into QIIME 2 using a manifest file. Our sequences are named as SRR13445888_1.fastq etc.
-Converting all 286 files to this format requires a small code included in the resource material creating _manifest_file.txt can be downloaded from here.
-
-A manifest is a tab-separated .txt file that maps each sample name to the absolute file paths of its corresponding FASTQ files (either .fastq or .fastq.gz), including both forward and reverse reads if working with paired-end data.
 A portion of manifest file will look like this.
 
 sample-id	forward-absolute-filepath	reverse-absolute-filepath
