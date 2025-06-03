@@ -393,7 +393,7 @@ l6_ancombc_differentials, = use.action(
 
 :::{describe-usage}
 l6_da_barplot = use.action(
-    use.UsageAction(plugin_id='composition', action_id='da-barplot'),
+    use.UsageAction(plugin_id='composition', action_id='da_barplot'),
     use.UsageInputs(
         data=l6_ancombc_differentials,
         significance_threshold=0.01,
