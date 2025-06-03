@@ -30,12 +30,8 @@ Martin, F.M. and van Der Heijden, M.G., 2024. The mycorrhizal symbiosis: researc
 Tedersoo et al., 2022. Global patterns in endemicity and vulnerability of soil fungi. Global change biology, 28(22), pp.6696-6710.
 Větrovský et al., 2023. GlobalAMFungi: a global database of arbuscular mycorrhizal fungal occurrences from high‐throughput sequencing metabarcoding studies. New Phytologist, 240(5), pp.2151-2163.
 Frew et al., 2024. AusAMF: database of arbuscular mycorrhizal fungal communities in Australia. bioRxiv, pp.2024-09.
-Parvin et al. (2021) Abundance, characteristics and variation of microplastics in different freshwater fish species from Bangladesh. Science of the Total Environment, 784, p.147137.
-![image](https://github.com/user-attachments/assets/a6c7282c-6e94-425b-a64b-f0e2f63089ca)
+Parvin, S., 2021. A comparison of the arbuscular mycorrhizal fungal communities among Bangladeshi modern high yielding and traditional rice varieties. Plant and Soil, 462, pp.109-124.
 
-
-
-![image](https://github.com/user-attachments/assets/4eb8f6dd-540d-4cc9-8321-bbac41633e2f)
 
 ## License
 
