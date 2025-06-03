@@ -1,34 +1,33 @@
 (tutorial)=
 # Tutorial
-
-Sample metadata
-This study investigates differences in AMF communities between modern high-yielding rice varieties (BR28, BR29, BR58) and local traditional varieties (Shampakatar, Ushapari), sampled from eight rice fields with five soil samples each. A total of 200 samples were collected, of which subsample of  143 AMF-relevant samples (79 from modern and 64 from traditional varieties), to test the hypothesis recorded in the metadata file. 
-Before starting the analysis, explore the sample metadata to familiarize yourself with the samples used in this study. The following command will download the sample metadata as tab-separated text and save it in the file sample-metadata.tsv. This sample-metadata.tsv file is used throughout the rest of the tutorial. 
-
-Obtaining the data
-Explain NCBI SRA if needed 
-
-
-In QIIME 2, all data is structured as an Artifact of a specific semantic type. Artifacts contain the data as well as information about the data, including a record of the original data and the tools used to process it. This allows for better tracking of how you actually got to where you are in your analysis. You can learn more about common QIIME 2 Artifacts and semantic types here.
-
-qiime demux summarize \
-    --i-data demux.qza \
-    --o-visualization visualization.qzv
-
-
-
-![image](https://github.com/user-attachments/assets/e2e126e6-429b-4b21-a5e1-c713f62d0c97)
-
 :::{note}
 This document was built with its own conda environment.
 You can download the environment file that was used from the download link on the top-right of this article.
 :::
 
+## Sample metadata
+
+This study investigates differences in AMF communities between modern high-yielding rice varieties (BR28, BR29, BR58) and local traditional varieties (Shampakatar, Ushapari), sampled from eight rice fields with five soil samples each. A total of 200 samples were collected, of which subsample of  143 AMF-relevant samples (79 from modern and 64 from traditional varieties), to test the hypothesis recorded in the metadata file. 
+Before starting the analysis, explore the sample metadata to familiarize yourself with the samples used in this study. The following command will download the sample metadata as tab-separated text and save it in the file sample-metadata.tsv. This sample-metadata.tsv file is used throughout the rest of the tutorial.
+
 :::{describe-usage}
 :scope: amf-tutorial
+metadata = use.init_metadata_from_url('metadata',
+                                   'https://www.dropbox.com/scl/fi/zgcnuetdxochydkb0o3bw/metadata_file_rice.tsv?rlkey=fo5ywq8549fn5optv1u1nh4m4&st=hzljxvx3&dl=1')
+:::
+
+
+## Obtaining the data
+In this tutorial, we will use (q2-fondue)[https://library.qiime2.org/plugins/bokulich-lab/q2-fondue] to download our publically available data and import them into QIIME 2. 
+
+First, Lets download our metadata that has the SRA project accession number.
+
+
+:::{describe-usage}
 project_accession = use.init_artifact_from_url('project-accession',
                                               'https://www.dropbox.com/scl/fi/h470qev6vqrzir3f7yksk/project_id.qza?rlkey=ra7jno6nzs0m2ddkynvgt3w14&st=rmpx5ndn&dl=1')
 :::
+Then we can visualize it using qiime metadata tabulate. 
 
 :::{describe-usage}
 
@@ -41,9 +40,26 @@ use.action(
     use.UsageOutputNames(visualization='project-accession'))
 :::
 
+We can use q2-fondue 🫕 to easily import the data using this command: 
+
+```
+qiime fondue get_sequences \
+    --p-accession-ids project_id.qza \
+    --p-email [Insert Your Email] \
+    --o-single-reads single-reads-demux.qza \
+    --o-paired-reads demux.qza \
+    --o-failed-runs failed-runs.qza
+```
+ or you can download the demux artifact here:
+
 :::{describe-usage}
 demux = use.init_artifact_from_url('demux',
                                    'https://www.dropbox.com/scl/fi/oklnxxh6wruw9i84m07fr/paired_reads.qza?rlkey=cwf85atfi6j5dyjzas51xorq0&st=9cxj7l5t&dl=1')
+:::
+Now lets vizulaze our data using demux summarize
+
+:::note
+In QIIME 2, all data is structured as an Artifact of a specific semantic type. Artifacts contain the data as well as information about the data, including a record of the original data and the tools used to process it. This allows for better tracking of how you actually got to where you are in your analysis. You can learn more about common QIIME 2 Artifacts and semantic types here.
 :::
 
 :::{describe-usage}
@@ -55,13 +71,9 @@ use.action(
 :::
 
 
-:::{describe-usage}
-metadata = use.init_metadata_from_url('metadata',
-                                   'https://www.dropbox.com/scl/fi/zgcnuetdxochydkb0o3bw/metadata_file_rice.tsv?rlkey=fo5ywq8549fn5optv1u1nh4m4&st=hzljxvx3&dl=1')
-:::
+![image](https://github.com/user-attachments/assets/e2e126e6-429b-4b21-a5e1-c713f62d0c97)
 
-# Denoising
-TODO: TIME RUNNING 11 minutes
+# Denoising Using DADA2
 :::{describe-usage}
 table, denoising_stats, representative_sequences = use.action(
     use.UsageAction(plugin_id='dada2', action_id='denoise_paired'),
@@ -104,7 +116,8 @@ table_summary = use.action(
     use.UsageOutputNames(visualization='table'))
 :::
 
-# TODO Reference databases and Taxonomic classification, feature table filtering and building the phylogenetic tree
+# Classifications
+## Classifications with fit-classifier-naive-bayes
 
 :::{describe-usage}
 def maarjam_refseq_factory():
@@ -149,39 +162,26 @@ ref_seqs_maarjam, = use.action(
         ),
     use.UsageOutputNames(reads='ref_seqs_maarjam'))
 :::
-<!-- :::{describe-usage}
-classifier_maarjam, = use.action(
-    use.UsageAction(plugin_id='feature_classifier', action_id='fit_classifier_naive_bayes'),
-    use.UsageInputs(
-        reference_reads=ref_seqs_maarjam,
-        reference_taxonomy=ref_taxonomy_maarjam,
-        ),
-    use.UsageOutputNames(classifier='classifier_maarjam'))
-::: -->
-```
+:::{note}
+Due to time constraints, this command is not generated in this noteboo. The resulting artifacted can be generated by running this command or running wget the artifact below. 👇
+:::
+
+```code
 qiime feature-classifier fit-classifier-naive-bayes \
     --i-reference-reads ref-seqs-maarjam.qza \
     --i-reference-taxonomy ref-taxonomy-maarjam.qza \
-    --o-classifier classifier-maarjam.qza \
+    --o-classifier classifier-maarjam.qza 
 ```
 
 :::{describe-usage}
 classifier_maarjam = use.init_artifact_from_url('classifier_maarjam',
                                    'https://www.dropbox.com/scl/fi/08aeme2zspkrt3q5bjmtu/classifier-maarjam.qza?rlkey=acl2ch723nf13spq25sp48ro4&st=itnbg5bu&dl=1')
 :::
-<!-- :::{describe-usage}
-taxonomy_maarjam, = use.action(
-    use.UsageAction(plugin_id='feature_classifier', action_id='classify_sklearn'),
-    use.UsageInputs(
-        reads=representative_sequences,
-        classifier=classifier_maarjam,
-        confidence=0.7,
-        n_jobs=1,
-        read_orientation='auto'),
-    use.UsageOutputNames(classification='taxonomy_maarjam'))
-::: -->
+:::{note}
+Due to time constraints, this command is not generated in this noteboo. The resulting artifacted can be generated by running this command or running wget the artifact below. 👇
+:::
 
-```
+```code
 qiime feature-classifier classify-sklearn \
     --i-reads representative-sequences.qza \
     --i-classifier classifier-maarjam.qza \
@@ -204,21 +204,8 @@ use.action(
         visualization='taxonomy_maarjam_md'))
 :::
 
-# day 8 
-
-```
- qiime feature-classifier classify-consensus-vsearch \
-    --i-query representative-sequences.qza \
-    --i-reference-reads otus-85-maarjam.qza \
-    --i-reference-taxonomy ref-taxonomy-maarjam.qza \
-    --p-perc-identity 0.99 \
-    --p-top-hits-only \
-    --p-maxaccepts 1 \
-    --p-strand 'both' \
-    --p-unassignable-label 'Unassigned' \
-    --o-classification rice-taxonomy-maarjAM.qza \ --o-search-results rice-search-results-maarjAM.qza 
-```
-
+## Classifications with classify-consensus-vsearch
+### Classification with maarjAM
 :::{describe-usage}
 rice_taxonomy_maarjAM, rice_search_results_maarjAM = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='classify_consensus_vsearch'),
@@ -269,7 +256,7 @@ filtered_unassigned_table, = use.action(
     use.UsageOutputNames(filtered_table='maarjAM_Glomeromycetes_seqs'))
 :::
 
-# silva
+### Classification with Silva
 :::{describe-usage}
 def silva_seqs_factory():
     from urllib import request
@@ -292,8 +279,12 @@ def silva_tax_factory():
 silva_138_99_tax = use.init_artifact('silva138_99_tax', silva_tax_factory)
 :::
 
-## This is what is taking so long
+```{note}
+Due to time constraints, this command is not generated in this noteboo. The resulting artifacted can be generated by running this command or running wget the artifact below. 👇
+
 ```
+
+```code
  qiime feature-classifier classify-consensus-vsearch \
     --i-query rep-seq-rice-unassigned-maarjAM.qza \
     --i-reference-reads silva-138-99-seqs.qza \
@@ -303,25 +294,10 @@ silva_138_99_tax = use.init_artifact('silva138_99_tax', silva_tax_factory)
     --p-maxaccepts 1 \
     --p-strand 'both' \
     --p-unassignable-label 'Unassigned' \
-    --o-classification rice-taxonomy-assigned-silva.qza --o-search-results rice-search-results-assigned-silva.qza 
+    --o-classification rice-taxonomy-assigned-silva.qza \
+    --o-search-results rice-search-results-assigned-silva.qza 
 ```
 
-<!-- :::{describe-usage}
-rice_taxonomy_assigned_silva, rice_search_results_assigned_silva = use.action(
-    use.UsageAction(plugin_id='feature_classifier', action_id='classify_consensus_vsearch'),
-    use.UsageInputs(
-        query=rep_seq_rice_unassigned_maarjAM,
-        reference_reads=silva_138_99_seqs,
-        reference_taxonomy=silva_138_99_tax,
-        perc_identity=0.99,
-        top_hits_only=True,
-        maxaccepts=1,
-        strand='both',
-        unassignable_label='Unassigned'),
-    use.UsageOutputNames(
-        classification='rice_taxonomy_assigned_silva',
-        search_results='rice_search_results_assigned_silva'))
-:::-->
 :::{describe-usage}
 rice_taxonomy_assigned_silva = use.init_artifact_from_url(
                                 'rice_taxonomy_assigned_silva', 'https://www.dropbox.com/scl/fi/q84hfc1ghtrthael2ij77/rice-taxonomy-assigned-silva.qza?rlkey=7tz6odze2rpglj8ubhq5m9t6h&st=qguiyovg&dl=1')
@@ -345,7 +321,7 @@ taxa_bar_plots = use.action(
     use.UsageOutputNames(visualization='taxa_bar_plots'))
 :::
 
-# Filtering taxa
+# Filtering Tables
 
 :::{describe-usage}
 traditional_rice_table, = use.action(
@@ -406,7 +382,7 @@ collapsed_table_level_6, = use.action(
 :::
 
 :::{describe-usage}
-l6_ancombc_diffs, = use.action(
+l6_ancombc_differentials, = use.action(
     use.UsageAction(plugin_id='composition', action_id='ancombc'),
     use.UsageInputs(
         table=collapsed_table_level_6,
@@ -425,7 +401,7 @@ l6_da_barplot = use.action(
     use.UsageOutputNames(visualization='l6_da_barplot'))
 :::
 
-# alpha rarefaction and core metrics
+# Diversity Analysis
 
 :::{describe-usage}
 rooted_tree, unrooted_tree, aligned_rep_seqs, masked_aligned_rep_seqs = use.action(
@@ -480,7 +456,7 @@ core_metrics_outputs = use.action(
         bray_curtis_distance_matrix='bray-curtis-distance-matrix',
         unweighted_unifrac_pcoa_results='unweighted-unifrac-pcoa-results'))
 :::
-
+## Alpha Diversity and Community Richness
 :::{describe-usage}
 shannon_group_significance = use.action(
     use.UsageAction(plugin_id='diversity', action_id='alpha_group_significance'),
@@ -507,6 +483,8 @@ faith_pd_group_significance = use.action(
         metadata=metadata),
     use.UsageOutputNames(visualization='faith_group'))
 :::
+
+## Beta Diversity 
 
 :::{describe-usage}
 
