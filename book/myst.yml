@@ -2,7 +2,7 @@
 version: 1
 project:
   id: amf-tutorial
-  title: Arbuscular Mycorrhiza Fungi (AMF) analysis tutorial
+  title: Arbuscular Mycorrhizal Fungi (AMF) analysis tutorial
   # description:
   keywords: ["QIIME", "QIIME 2", "microbiome", "metagenome"]
   # uncommenting "authors" will put the author list on every page
