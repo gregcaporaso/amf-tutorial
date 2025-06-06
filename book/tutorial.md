@@ -72,26 +72,24 @@ use.action(
 
 ## #Understanding the Data
 
-If you downloaded your data using q2-fondue, or if you're working with data provided by your sequencing facility, you will typically have three types of files:
+If you downloaded your data using q2-fondue, or if you're working with data provided by your sequencing facility, you will typically need three types of files:
 
-Metadata file – This mapping file provides contextual information about the experiment, such as the hypothesis, treatments, and sample details.Example: metadata_file_1.tsv
+1. Metadata file – This mapping file provides contextual information about the experiment, such as the hypothesis, treatments, and sample details.
 
-Classifier file – This file is used for taxonomic classification.@Chloe: Please add a link to the classifier file.
+2. Classifier file – This file is used for taxonomic classification.
 
-Sequence files – These are in FASTQ format, and you should have 289 files.To confirm:
+3. Sequence files – These are in FASTQ format or imported to qiime2 as .qza files.
 
-cd fastq
-ls
 
-To explore your sequencing data and assess quality, open the demux.qzv file. This visualization will help you examine the sequence quality across reads, which is essential for deciding how much to trim in the next steps.
+To explore your sequencing data and assess quality, open the demux.qzv file in explorer. This visualization will help you examine the sequence quality across reads, which is essential for deciding how much to trim in the next steps.
 
 ## Revision Questions
 
-1.What is the minimum and maximum number of reads in our samples?
+1. What is the minimum and maximum number of reads in our samples?
 
-2.Do any of the samples have fewer than 1,000 sequences?
+2. Do any of the samples have fewer than 1,000 sequences?
 
-3.At which position does the median quality score drop below 30?
+3. At which position does the median quality score drop below 30?
 
 Note: If any samples have very few sequences (e.g., fewer than 1,000), you may want to omit them from downstream analysis, as they could negatively affect data interpretation.
 
@@ -109,11 +107,6 @@ Note: If any samples have very few sequences (e.g., fewer than 1,000), you may w
 
 # Denoising Using DADA2
 Denoising is the process of correcting errors in the sequencing data and delimitating ASVs( amplicon sequence variants). The Non-biological sequences (e.g., adapters, primers, linker pads, etc.) and errors created by sequencing machines, such as incorrect base calls or random noise which can lead to inaccurate results if not corrected.
-Depending on your library preparation protocol, you may or may not have primers in your sequences, which needs to be removed by cutadapt command. 
-
-
-
-
 
 
 :::{describe-usage}
@@ -146,8 +139,7 @@ dada2_stats_viz = use.action(
     use.UsageOutputNames(visualization='stats-dada2'))
 :::
 
-Note - Have a large number (e.g. >50%) of sequences been lost during denoising/filtering? If so, the settings might be too stringent.
-
+ 
 
 
 :::{describe-usage}
@@ -158,7 +150,7 @@ rep_seqs_viz = use.action(
     use.UsageOutputNames(visualization='rep-seqs'))
 :::
 
-Note - Do BLAST searches of the representative sequences make sense? Are the features what you would expect like AMF or not  ?
+
 
 
 :::{describe-usage}
@@ -169,12 +161,19 @@ table_summary = use.action(
     use.UsageOutputNames(visualization='table'))
 :::
 
-Note - How many features (ASVs) were generated? Are the communities high or low diversity?
 
 
+## Revision Questions
 
-# Taxonomic assignemnt 
-## Classifications with fit-classifier-naive-bayes
+1. Do BLAST searches of the representative sequences make sense? Are the features what you would expect like AMF or not?
+2. How many features (ASVs) were generated? Are the communities high or low diversity?
+
+Note- If you have a large number (e.g. >50%) of sequences been lost during denoising/filtering? If so, the settings might be too stringent.
+
+
+# Taxonomic assignment 
+## Classifications with fit-classifier-naive-bayes 
+### Classification with maarjAM
 
 :::{describe-usage}
 def maarjam_refseq_factory():
@@ -261,7 +260,11 @@ use.action(
         visualization='taxonomy_maarjam_md'))
 :::
 
+## Revision Questions
 
+1.  How many of your ASVs were taxonomically assigned?
+   note :view your taxonomy.qzv file
+   
 ## Classifications with classify-consensus-vsearch
 ### Classification with maarjAM
 :::{describe-usage}
@@ -272,7 +275,7 @@ rice_taxonomy_maarjAM, rice_search_results_maarjAM = use.action(
         reference_reads=otus_85_maarjam,
         reference_taxonomy=ref_taxonomy_maarjam,
         maxaccepts=1,
-        perc_identity=0.99,
+        perc_identity=0.7,
         strand='both',
         top_hits_only=True,
         unassignable_label='Unassigned'),
@@ -319,36 +322,10 @@ filtered_unassigned_table, = use.action(
 1.  How many of your ASVs were taxonomically assigned? 
 
 
-### Classification with Silva
-:::{describe-usage}
-def silva_seqs_factory():
-    from urllib import request
-    from qiime2 import Artifact
-    url = 'https://data.qiime2.org/2024.2/common/silva-138-99-seqs.qza'
-    fp, _ = request.urlretrieve(url)
-    return Artifact.load(fp)
-
-silva_138_99_seqs = use.init_artifact('silva_138_99_seqs', silva_seqs_factory)
-:::
-
-:::{describe-usage}
-def silva_tax_factory():
-    from urllib import request
-    from qiime2 import Artifact
-    url = 'https://data.qiime2.org/2024.2/common/silva-138-99-tax.qza'
-    fp, _ = request.urlretrieve(url)
-    return Artifact.load(fp)
-
-silva_138_99_tax = use.init_artifact('silva138_99_tax', silva_tax_factory)
-:::
-
-```{note}
-Due to time constraints, this command is not generated in this notebook. The resulting artifacted can be generated by running this command or running wget the artifact below. 👇
 
 ```
-## Revision Questions
 
-1.  How many of your ASVs were taxonomically assigned with Silva? 
+
 
 ```code
  qiime feature-classifier classify-consensus-vsearch \
