@@ -284,75 +284,14 @@ rice_taxonomy_maarjAM, rice_search_results_maarjAM = use.action(
         search_results='rice_search_results_maarjAM'))
 :::
 
-:::{describe-usage}
-table_rice_unassigned_maarjAM, = use.action(
-    use.UsageAction(plugin_id='taxa', action_id='filter_table'),
-    use.UsageInputs(
-        table=table, #table_rice?
-        taxonomy=rice_taxonomy_maarjAM,
-        include='Unassigned',
-        query_delimiter=',',
-        mode='contains'),
-    use.UsageOutputNames(filtered_table='table_rice_unassigned_maarjAM'))
-:::
+# comment for chloe please note the followings:
 
-:::{describe-usage}
-rep_seq_rice_unassigned_maarjAM, = use.action(
-    use.UsageAction(plugin_id='feature_table', action_id='filter_seqs'),
-    use.UsageInputs(
-        data=representative_sequences,
-        table=table_rice_unassigned_maarjAM),
-    use.UsageOutputNames(filtered_data='rep_seq_rice_unassigned_maarjAM'))
-:::
+Please this file whic I am sending by mail.
+rice-taxonomy-maarjAM.qza
+add command for converting this to qzv file.
+we need to change file in taxa plot also.
 
-:::{describe-usage}
-filtered_unassigned_table, = use.action(
-    use.UsageAction(plugin_id='taxa', action_id='filter_table'),
-    use.UsageInputs(
-        table=table, #table_rice?
-        taxonomy=rice_taxonomy_maarjAM,
-        include='c__Glomeromycetes',
-        query_delimiter=',',
-        mode='contains'),
-    use.UsageOutputNames(filtered_table='maarjAM_Glomeromycetes_seqs'))
-:::
-
-## Revision Questions
-
-1.  How many of your ASVs were taxonomically assigned? 
-
-
-
-```
-
-
-
-```code
- qiime feature-classifier classify-consensus-vsearch \
-    --i-query rep-seq-rice-unassigned-maarjAM.qza \
-    --i-reference-reads silva-138-99-seqs.qza \
-    --i-reference-taxonomy silva138-99-tax.qza \
-    --p-perc-identity 0.99 \
-    --p-top-hits-only \
-    --p-maxaccepts 1 \
-    --p-strand 'both' \
-    --p-unassignable-label 'Unassigned' \
-    --o-classification rice-taxonomy-assigned-silva.qza \
-    --o-search-results rice-search-results-assigned-silva.qza 
-```
-
-:::{describe-usage}
-rice_taxonomy_assigned_silva = use.init_artifact_from_url(
-                                'rice_taxonomy_assigned_silva', 'https://www.dropbox.com/scl/fi/q84hfc1ghtrthael2ij77/rice-taxonomy-assigned-silva.qza?rlkey=7tz6odze2rpglj8ubhq5m9t6h&st=qguiyovg&dl=1')
-:::
-
-:::{describe-usage}
-merged_taxonomy, = use.action(
-    use.UsageAction(plugin_id='feature_table', action_id='merge_taxa'),
-    use.UsageInputs(
-        data=[rice_taxonomy_maarjAM, rice_taxonomy_assigned_silva]),
-    use.UsageOutputNames(merged_data='merged_taxonomy'))
-:::
+______________________________________________________________________
 
 :::{describe-usage}
 taxa_bar_plots = use.action(
@@ -364,12 +303,6 @@ taxa_bar_plots = use.action(
     use.UsageOutputNames(visualization='taxa_bar_plots'))
 :::
 
-# Note 
-Why Vsearch ?
-
-It decides on the basis of global alignment of sequences.
-It allows us to pass stricter parameter for identity.
-I can get unassignable as output  to run through the other database.
 
 
 
