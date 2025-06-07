@@ -286,12 +286,16 @@ rice_taxonomy_maarjAM, rice_search_results_maarjAM = use.action(
 
 # comment for chloe please note the followings:
 
-Please this file whic I am sending by mail.
+Please this file which I am sending by mail.
 rice-taxonomy-maarjAM.qza
 add command for converting this to qzv file.
-we need to change file in taxa plot also.
-
+we need to change file in taxa plot also. we will use the file generated in sklearn.
+In the AncomBC also we need to change the file.
+merge taxonomy need to n=be changed in ancombc also. Then I changed column name to sample name this gave us result and graph. 
 ______________________________________________________________________
+
+
+# Taxonomy Bar Plot 
 
 :::{describe-usage}
 taxa_bar_plots = use.action(
@@ -304,9 +308,19 @@ taxa_bar_plots = use.action(
 :::
 
 
+# Revision Questions
+ What are the dominant phyla in each in each group ?
+
+Note : Visualize the samples at Level 6 (which corresponds to the genus of AMF in this analysis), and then sort the samples by  env_broad_level,  You can add as many taxonomic levels levels you want.
+If it's hard to visualize the dominant phyla in each in each group, download the csv file on left hand side and use this to plot a relative abundance chart. 
+
+
+
 
 
 # Filtering Tables
+
+You can filter table if you want to work with specific group of taxa. You can create separate files for traditionnal and modern varieties if you want to. 
 
 :::{describe-usage}
 traditional_rice_table, = use.action(
@@ -344,7 +358,15 @@ modern_rice_table_viz = use.action(
     use.UsageOutputNames(visualization='modern_rice_table'))
 :::
 
+
+
 # Differential abundance (ANCOM-BC)
+
+It identifies taxa that are differentially abundant in modern or traditional rice variety.
+
+Accurately identifying features that are differentially abundant across sample types in microbiome data is a challenging problem and an open area of research. Analysis of Compositions of Microbiomes with Bias Correction (ANCOM-BC) is a methodology for differential abundance (DA) testing that corrects bias in microbiome data.
+
+Filter table to selectively pick the Glomeromycota phylum features.
 
 :::{describe-usage}
 glomeromycetes_table, = use.action(
@@ -386,7 +408,16 @@ l6_da_barplot = use.action(
     use.UsageOutputNames(visualization='l6_da_barplot'))
 :::
 
+# Revision Questions
+ 1. Which taxa are enriched in traditional varieties?
+ Note: try changing sample_name to column 'env_broad_scale'; try with significance threshold of 0.05 also.
+
+
+
 # Diversity Analysis
+
+# Phylogenetic tree 
+
 
 :::{describe-usage}
 rooted_tree, unrooted_tree, aligned_rep_seqs, masked_aligned_rep_seqs = use.action(
@@ -402,6 +433,9 @@ rooted_tree, unrooted_tree, aligned_rep_seqs, masked_aligned_rep_seqs = use.acti
 :::
 
 :::{describe-usage}
+
+#  Alpha rarefaction Plot 
+
 alpha_rarefaction_plot = use.action(
     use.UsageAction(plugin_id='diversity', action_id='alpha_rarefaction'),
     use.UsageInputs(
@@ -412,6 +446,20 @@ alpha_rarefaction_plot = use.action(
         ),
     use.UsageOutputNames(visualization='alpha_rarefaction'))
 :::
+
+# Revision Questions
+
+1. How did we decide as maximum depth 13299 ?
+
+Note : The max depth setting will depend on the number of sequences in your samples. The value that you provide for –p-max-depth should be determined by reviewing the OTU Frequency per sample information presented in the table.qzv file that was created above. Also observe that Do the refraction curves for each sample plateau? If they don’t, the samples haven’t been sequenced deeply enough to capture the full diversity of the AM fungal communities, which is shown on the y-axis. At what sequencing depth (x-axis) do your curves plateau? This value will be important for downstream analyses, particularly for alpha diversity analyses. Considering both features and samples retained is very important : lets go back to 
+
+qiime tools view table.qzv
+
+You may want to increase that value if the lines in the resulting rarefaction plot don’t appear to be leveling out, or decrease that value if you seem to be losing many of your samples due to low total frequencies closer to the minimum sampling depth than the maximum sampling depth.
+1602 
+Retained 206,658 (8.75%) features in 129 (90.21%) samples at the specified sampling depth. So we will use 1602 for further analysis.
+
+
 
 :::{describe-usage}
 core_metrics_outputs = use.action(
@@ -441,7 +489,11 @@ core_metrics_outputs = use.action(
         bray_curtis_distance_matrix='bray-curtis-distance-matrix',
         unweighted_unifrac_pcoa_results='unweighted-unifrac-pcoa-results'))
 :::
+
+
+
 ## Alpha Diversity and Community Richness
+
 :::{describe-usage}
 shannon_group_significance = use.action(
     use.UsageAction(plugin_id='diversity', action_id='alpha_group_significance'),
@@ -468,6 +520,10 @@ faith_pd_group_significance = use.action(
         metadata=metadata),
     use.UsageOutputNames(visualization='faith_group'))
 :::
+
+# Revision Questions
+Is species richness same as number of ASVs ? 
+
 
 ## Beta Diversity 
 
