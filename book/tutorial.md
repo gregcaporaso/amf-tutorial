@@ -95,16 +95,6 @@ Note: If any samples have very few sequences (e.g., fewer than 1,000), you may w
 
 
 
-
-
-![image](https://github.com/user-attachments/assets/737d4d72-a40d-4e2b-8815-7c75981a112a)
-
-
-
-  
-![image](https://github.com/user-attachments/assets/dd99f519-040e-40e7-9776-345b5ffe8a57)
-
-
 # Denoising Using DADA2
 Denoising is the process of correcting errors in the sequencing data and delimitating ASVs( amplicon sequence variants). The Non-biological sequences (e.g., adapters, primers, linker pads, etc.) and errors created by sequencing machines, such as incorrect base calls or random noise which can lead to inaccurate results if not corrected.
 
