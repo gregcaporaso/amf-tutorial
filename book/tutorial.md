@@ -163,7 +163,7 @@ Note- If you have a large number (e.g. >50%) of sequences been lost during denoi
 
 # Taxonomic assignment 
 ## Classifications with fit-classifier-naive-bayes 
-### Classification with maarjAM
+
 
 To construct a taxonomic classifier using the MaarjAM database, two primary input files are required:
 
@@ -192,12 +192,14 @@ classifier_maarjam = use.init_artifact_from_url('classifier_maarjam',
 ```code
 qiime feature-classifier classify-sklearn \
     --i-reads representative-sequences.qza \
-    --i-classifier classifier.qza \
+    --i-classifier classifier-maarjam.qza \
     --p-confidence 0.7 \
-    --o-classification taxonomy_maarjaam.qza
+    --o-classification taxonomy-maarjam.qza
 ```
-
-classifier file may be downloaded from here https://drive.google.com/file/d/1Sc_JX-mYtWRHN5EfoI8LtFTYw4K0aoq-/view?usp=drive_link
+# comment for chloe please note the followings:
+classifier file may be downloaded from here:  https://drive.google.com/file/d/1Rm4WgiXB0ScmxsERSB1WqHJX36ILocMN/view?usp=drive_link
+Taxonomy file can be downloaded from here: https://drive.google.com/file/d/1pkGFf3vVs6Zp57dq7h1_xxX_65siVZ51/view?usp=drive_link
+taxonomy_maarjam_md.qzv can be downloaded from here: https://drive.google.com/file/d/1QJfTdNfGCF65lX1dR3ZKvNfwg_QoIc9k/view?usp=drive_link
 
 :::{describe-usage}
 taxonomy_maarjam = use.init_artifact_from_url('taxonomy_maarjam',
@@ -220,14 +222,14 @@ use.action(
    note :view your taxonomy.qzv file
    
 ## Classifications with classify-consensus-vsearch
-### Classification with maarjAM
+
 :::{describe-usage}
 rice_taxonomy_maarjAM, rice_search_results_maarjAM = use.action(
     use.UsageAction(plugin_id='feature_classifier', action_id='classify_consensus_vsearch'),
     use.UsageInputs(
         query=representative_sequences,
-        reference_reads=otus_85_maarjam,
-        reference_taxonomy=ref_taxonomy_maarjam,
+        reference_reads=maarjam_ref_seq,
+        reference_taxonomy=ref_taxonomy,
         maxaccepts=1,
         perc_identity=0.7,
         strand='both',
@@ -238,15 +240,20 @@ rice_taxonomy_maarjAM, rice_search_results_maarjAM = use.action(
         search_results='rice_search_results_maarjAM'))
 :::
 
-# comment for chloe please note the followings:
 
-Please this file which I am sending by mail.
-rice-taxonomy-maarjAM.qza
-add command for converting this to qzv file.
-we need to change file in taxa plot also. we will use the file generated in sklearn.
-In the AncomBC also we need to change the file.
-merge taxonomy need to n=be changed in ancombc also. Then I changed column name to sample name this gave us result and graph. 
-______________________________________________________________________
+qiime metadata tabulate \
+  --m-input-file rice_taxonomy_maarjAM.qza \
+  --o-visualization rice_taxonomy_maarjAM.qzv
+
+
+# comment for chloe please note the followings:
+ reference sequences :https://drive.google.com/file/d/1sQy-kztzeJrpMF3jZHKUDczzkc7R7KPP/view?usp=drive_link
+   taxonomy file : https://drive.google.com/file/d/1Ds0OiwA1eH10rRg1p0HBRIkTu3RmGUev/view?usp=drive_link
+
+rice_taxonomy_maarjAM  - https://drive.google.com/file/d/1y-ualwSsKTAfc5YyzQV2Ri-BHPxjtkqF/view?usp=drive_link
+rice_search_results_maarjAM - https://drive.google.com/file/d/106ext5NtafP9Z8odSVMv3_0Qn3-FnFNA/view?usp=drive_link
+rice_taxonomy_maarjAM.qzv - https://drive.google.com/file/d/1Fi9ni5iGdKNVWakcYJkZ-dUA7DaQkQ1V/view?usp=drive_link
+
 
 
 # Taxonomy Bar Plot 
@@ -256,7 +263,7 @@ taxa_bar_plots = use.action(
     use.UsageAction(plugin_id='taxa', action_id='barplot'),
     use.UsageInputs(
         table=table,
-        taxonomy=merged_taxonomy,
+        taxonomy=taxonomy-maarjam,
         metadata=metadata),
     use.UsageOutputNames(visualization='taxa_bar_plots'))
 :::
