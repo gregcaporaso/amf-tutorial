@@ -1,4 +1,4 @@
-(tutorial)=
+
 # Tutorial
 :::{note}
 This document was built with its own conda environment.
@@ -20,7 +20,7 @@ metadata = use.init_metadata_from_url('metadata',
 ## Obtaining the data
 In this tutorial, we will use (q2-fondue)[https://library.qiime2.org/plugins/bokulich-lab/q2-fondue] to download our publically available data and import them into QIIME 2. 
 
-First, Lets download our metadata that has the SRA project accession number.
+First, let’s download the metadata containing the NCBI SRA project accession number SRR13445888
 
 
 :::{describe-usage}
@@ -56,7 +56,7 @@ qiime fondue get_sequences \
 demux = use.init_artifact_from_url('demux',
                                    'https://www.dropbox.com/scl/fi/oklnxxh6wruw9i84m07fr/paired_reads.qza?rlkey=cwf85atfi6j5dyjzas51xorq0&st=9cxj7l5t&dl=1')
 :::
-Now lets vizulaze our data using demux summarize
+Now, let’s visualize our data using demux summarize to assess sequencing quality.
 
 :::note
 In QIIME 2, all data is structured as an Artifact of a specific semantic type. Artifacts contain the data as well as information about the data, including a record of the original data and the tools used to process it. This allows for better tracking of how you actually got to where you are in your analysis. You can learn more about common QIIME 2 Artifacts and semantic types here.
@@ -72,16 +72,17 @@ use.action(
 
 ## #Understanding the Data
 
-If you downloaded your data using q2-fondue, or if you're working with data provided by your sequencing facility, you will typically need three types of files:
+If you downloaded your data using q2-fondue, or received it from a sequencing facility, you will typically need three key files:
 
-1. Metadata file – This mapping file provides contextual information about the experiment, such as the hypothesis, treatments, and sample details.
+Metadata file – This mapping file provides contextual information about your experiment, including hypotheses, treatments, and sample details.
 
-2. Classifier file – This file is used for taxonomic classification.
+Classifier file – Used for assigning taxonomy during analysis.
 
-3. Sequence files – These are in FASTQ format or imported to qiime2 as .qza files.
+Sequence files – These are usually in FASTQ format or already imported into QIIME 2 as .qza files.
+
+To begin exploring your data and assessing its quality, open the demux.qzv file in QIIME 2 View. This visualization helps you evaluate read quality, which is critical for determining appropriate trimming parameters in downstream steps.
 
 
-To explore your sequencing data and assess quality, open the demux.qzv file in explorer. This visualization will help you examine the sequence quality across reads, which is essential for deciding how much to trim in the next steps.
 
 ## Revision Questions
 
@@ -91,12 +92,11 @@ To explore your sequencing data and assess quality, open the demux.qzv file in e
 
 3. At which position does the median quality score drop below 30?
 
-Note: If any samples have very few sequences (e.g., fewer than 1,000), you may want to omit them from downstream analysis, as they could negatively affect data interpretation.
-
+Note: If any of the samples have very few sequences (e.g., fewer than 1,000), you may want to omit them from downstream analysis, as they could negatively affect data interpretation.
 
 
 # Denoising Using DADA2
-Denoising is the process of correcting errors in the sequencing data and delimitating ASVs( amplicon sequence variants). The Non-biological sequences (e.g., adapters, primers, linker pads, etc.) and errors created by sequencing machines, such as incorrect base calls or random noise which can lead to inaccurate results if not corrected.
+Denoising is the process of correcting errors in the sequencing data and delimitating ASVs (amplicon sequence variants). The Non-biological sequences (e.g., adapters, primers, linker pads, etc.) and errors created by sequencing machines, such as incorrect base calls or random noise which can lead to inaccurate results if not corrected.
 
 
 :::{describe-usage}
@@ -181,6 +181,9 @@ qiime feature-classifier fit-classifier-naive-bayes \
     --o-classifier classifier-maarjam.qza 
 ```
 
+
+
+
 :::{describe-usage}
 classifier_maarjam = use.init_artifact_from_url('classifier_maarjam',
                                    'https://www.dropbox.com/scl/fi/08aeme2zspkrt3q5bjmtu/classifier-maarjam.qza?rlkey=acl2ch723nf13spq25sp48ro4&st=itnbg5bu&dl=1')
@@ -194,12 +197,30 @@ qiime feature-classifier classify-sklearn \
     --i-reads representative-sequences.qza \
     --i-classifier classifier-maarjam.qza \
     --p-confidence 0.7 \
-    --o-classification taxonomy-maarjam.qza
+    --o-classification taxonomy-maarjaam.qza
 ```
+
+Note : Building an accurate classifier file is crucial for reliable taxonomic analysis, as it can significantly influence your results. An incorrect or poorly trained classifier may lead to unassigned or misclassified sequences. It's recommended to run your data using both the vsearch and sklearn methods for comparison. Details on both approaches are provided [here].
+# comment for chloe please add a link to more details about sklearn and Vsearch methods in qiime docs 
+
+
 # comment for chloe please note the followings:
 classifier file may be downloaded from here:  https://drive.google.com/file/d/1Rm4WgiXB0ScmxsERSB1WqHJX36ILocMN/view?usp=drive_link
-Taxonomy file can be downloaded from here: https://drive.google.com/file/d/1pkGFf3vVs6Zp57dq7h1_xxX_65siVZ51/view?usp=drive_link
-taxonomy_maarjam_md.qzv can be downloaded from here: https://drive.google.com/file/d/1QJfTdNfGCF65lX1dR3ZKvNfwg_QoIc9k/view?usp=drive_link
+taxonomy-maarjaam.qza file can be downloaded from here: https://drive.google.com/file/d/17FKO_GtI_sgS6F-RyD060Oot7M4GmI7H/view?usp=drive_link
+
+create a visual file for this 
+
+qiime metadata tabulate \
+  --m-input-file taxonomy-maarjaam.qza \
+  --o-visualization taxonomy-maarjaam.qzv
+
+taxonomy-maarjaam.qzv file can be downloaded from here : https://drive.google.com/file/d/1kXbIjRLuYmwDnvG6JJb92ufH4RAhkFE3/view?usp=drive_link
+
+
+
+
+
+
 
 :::{describe-usage}
 taxonomy_maarjam = use.init_artifact_from_url('taxonomy_maarjam',
@@ -223,50 +244,47 @@ use.action(
    
 ## Classifications with classify-consensus-vsearch
 
-:::{describe-usage}
-rice_taxonomy_maarjAM, rice_search_results_maarjAM = use.action(
-    use.UsageAction(plugin_id='feature_classifier', action_id='classify_consensus_vsearch'),
-    use.UsageInputs(
-        query=representative_sequences,
-        reference_reads=maarjam_ref_seq,
-        reference_taxonomy=ref_taxonomy,
-        maxaccepts=1,
-        perc_identity=0.7,
-        strand='both',
-        top_hits_only=True,
-        unassignable_label='Unassigned'),
-    use.UsageOutputNames(
-        classification='rice_taxonomy_maarjAM',
-        search_results='rice_search_results_maarjAM'))
-:::
+qiime feature-classifier classify-consensus-vsearch \
+    --i-query representative-sequences.qza \       
+    --i-reference-reads maarjam_ref_seq.qza \                     
+    --i-reference-taxonomy ref-taxonomy.qza \    
+    --p-perc-identity 0.7 \ 
+    --p-top-hits-only \
+    --p-maxaccepts 1 \
+    --p-strand 'both' \
+    --p-unassignable-label 'Unassigned' \
+    --o-classification rice-taxonomy-vsearch.qza \       
+    --o-search-results rice-search-results-vsearch.qza       
+
+rice-taxonomy-vsearch.qza  can be downloaded from here: https://drive.google.com/file/d/1_5GJCKz1eDOnIlDqJqTpjQDTMlxkY6DY/view?usp=drive_link
+rice-search-results-vsearch.qza can be downloaded from here: https://drive.google.com/file/d/1Uk3w5eqT-ArkjPqdoPwtKXG918KuUqkt/view?usp=drive_link
 
 
 qiime metadata tabulate \
-  --m-input-file rice_taxonomy_maarjAM.qza \
-  --o-visualization rice_taxonomy_maarjAM.qzv
+  --m-input-file rice-taxonomy-vsearch.qza \
+  --o-visualization rice-taxonomy-vsearch.qzv
 
+rice-taxonomy-vsearch.qzv can be downloaded from here : https://drive.google.com/file/d/1VUCh2j-Z4xy808hGTYyT9qvjJiiMBuv3/view?usp=drive_link
 
 # comment for chloe please note the followings:
- reference sequences :https://drive.google.com/file/d/1sQy-kztzeJrpMF3jZHKUDczzkc7R7KPP/view?usp=drive_link
-   taxonomy file : https://drive.google.com/file/d/1Ds0OiwA1eH10rRg1p0HBRIkTu3RmGUev/view?usp=drive_link
-
-rice_taxonomy_maarjAM  - https://drive.google.com/file/d/1y-ualwSsKTAfc5YyzQV2Ri-BHPxjtkqF/view?usp=drive_link
-rice_search_results_maarjAM - https://drive.google.com/file/d/106ext5NtafP9Z8odSVMv3_0Qn3-FnFNA/view?usp=drive_link
-rice_taxonomy_maarjAM.qzv - https://drive.google.com/file/d/1Fi9ni5iGdKNVWakcYJkZ-dUA7DaQkQ1V/view?usp=drive_link
+ reference sequences, maarjam_ref_seq.qza is same as used for fit-classifier-naive-bayes 
+   taxonomy file, ref-taxonomy.qza   is same as used for fit-classifier-naive-bayes 
 
 
+## Revision Questions
+
+1.  How many of your ASVs were taxonomically assigned by this method. Is there a difference in outpu between fit-classifier-naive-bayes   and classify-consensus-vsearch?
+  
 
 # Taxonomy Bar Plot 
 
-:::{describe-usage}
-taxa_bar_plots = use.action(
-    use.UsageAction(plugin_id='taxa', action_id='barplot'),
-    use.UsageInputs(
-        table=table,
-        taxonomy=taxonomy-maarjam,
-        metadata=metadata),
-    use.UsageOutputNames(visualization='taxa_bar_plots'))
-:::
+qiime taxa barplot \
+  --i-table table.qza \
+  --i-taxonomy  taxonomy-maarjaam.qza \
+  --m-metadata-file metadata.tsv \
+  --o-visualization taxa-bar-plots.qzv
+
+taxa-bar-plots.qzv can be downloaded from here :  https://drive.google.com/file/d/1DdmfBOwJW5YS6e20CVSlGkJ5Zp1xmrdk/view?usp=drive_link
 
 
 # Revision Questions
@@ -274,8 +292,6 @@ taxa_bar_plots = use.action(
 
 Note : Visualize the samples at Level 6 (which corresponds to the genus of AMF in this analysis), and then sort the samples by  env_broad_level,  You can add as many taxonomic levels levels you want.
 If it's hard to visualize the dominant phyla in each in each group, download the csv file on left hand side and use this to plot a relative abundance chart. 
-
-
 
 
 
@@ -329,9 +345,13 @@ Accurately identifying features that are differentially abundant across sample t
 
 Filter table to selectively pick the Glomeromycota phylum features.
 
+# chloe please note input filefor this is taxonomy-maarjaam.qza
+taxonomy-maarjaam.qza file can be downloaded from here: https://drive.google.com/file/d/17FKO_GtI_sgS6F-RyD060Oot7M4GmI7H/view?usp=drive_link
+
+
 :::{describe-usage}
 glomeromycetes_table, = use.action(
-    use.UsageAction(plugin_id='taxa', action_id='filter_table'),
+    use.UsageAction(plugin_id='taxa', action_id='taxonomy-maarjaam'),
     use.UsageInputs(
         table=table,
         taxonomy=merged_taxonomy,
@@ -378,7 +398,7 @@ l6_da_barplot = use.action(
 # Diversity Analysis
 
 # Phylogenetic tree 
-
+Both rooted and unrooted trees can be generated bybthis command.
 
 :::{describe-usage}
 rooted_tree, unrooted_tree, aligned_rep_seqs, masked_aligned_rep_seqs = use.action(
