@@ -288,7 +288,7 @@ taxa-bar-plots.qzv can be downloaded from here :  https://drive.google.com/file/
 
 
 # Revision Questions
- What are the dominant phyla in each in each group ?
+ 1. What are the dominant phyla in each in each group ?
 
 Note : Visualize the samples at Level 6 (which corresponds to the genus of AMF in this analysis), and then sort the samples by  env_broad_level,  You can add as many taxonomic levels levels you want.
 If it's hard to visualize the dominant phyla in each in each group, download the csv file on left hand side and use this to plot a relative abundance chart. 
@@ -503,7 +503,7 @@ faith_pd_group_significance = use.action(
 :::
 
 # Revision Questions
-Is species richness same as number of ASVs ? 
+1. Is species richness same as number of ASVs ? 
 
 
 ## Beta Diversity 
