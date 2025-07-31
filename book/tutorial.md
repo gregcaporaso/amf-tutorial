@@ -188,10 +188,8 @@ Due to time constraints, this command is not generated in this notebook. The res
 :::
 
 Note : Building an accurate classifier file is crucial for reliable taxonomic analysis, as it can significantly influence your results. An incorrect or poorly trained classifier may lead to unassigned or misclassified sequences. It's recommended to run your data using both the vsearch and sklearn methods for comparison. Details on both approaches are provided [here].
-# comment for chloe please add a link to more details about sklearn and Vsearch methods in qiime docs 
 
 
-# comment for chloe please note the followings:
 
 ```code
 qiime feature-classifier fit-classifier-naive-bayes \
