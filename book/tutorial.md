@@ -111,7 +111,7 @@ table, denoising_stats, representative_sequences = use.action(
 :::
 
 ## Revision Questions
-1.  How did we decide    --p-trunc-len-f 240 \ --p-trunc-len-r 220 \ ?
+1.  How did we decide the truncation parameters, --p-trunc-len-f 240 --p-trunc-len-r 220?
 Hint: At what base pair does the median quality drop below 30?
 
 :::{describe-usage}
